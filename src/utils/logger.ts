@@ -44,8 +44,11 @@ const transports: winston.transport[] = [
   }),
 ];
 
-// Add file transports for production
-if (env.NODE_ENV === 'production') {
+// Add file transports for production (only for non-serverless environments)
+// Vercel and other serverless platforms don't support file system writes
+const isServerless = process.env['VERCEL'] || process.env['AWS_LAMBDA_FUNCTION_NAME'] || process.env['NETLIFY'];
+
+if (env.NODE_ENV === 'production' && !isServerless) {
   transports.push(
     // Error logs
     new winston.transports.File({
@@ -80,7 +83,7 @@ const logger = winston.createLogger({
   // Handle uncaught exceptions
   exceptionHandlers: [
     new winston.transports.Console(),
-    ...(env.NODE_ENV === 'production' 
+    ...(env.NODE_ENV === 'production' && !isServerless
       ? [new winston.transports.File({ filename: 'logs/exceptions.log' })]
       : []
     ),
@@ -88,7 +91,7 @@ const logger = winston.createLogger({
   // Handle unhandled promise rejections
   rejectionHandlers: [
     new winston.transports.Console(),
-    ...(env.NODE_ENV === 'production' 
+    ...(env.NODE_ENV === 'production' && !isServerless
       ? [new winston.transports.File({ filename: 'logs/rejections.log' })]
       : []
     ),
@@ -97,8 +100,8 @@ const logger = winston.createLogger({
   exitOnError: false,
 });
 
-// Create logs directory if it doesn't exist (for production)
-if (env.NODE_ENV === 'production') {
+// Create logs directory if it doesn't exist (for production, non-serverless only)
+if (env.NODE_ENV === 'production' && !isServerless) {
   import('fs').then((fs) => {
     if (!fs.existsSync('logs')) {
       fs.mkdirSync('logs');

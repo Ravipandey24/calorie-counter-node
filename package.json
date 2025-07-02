@@ -4,10 +4,14 @@
   "description": "Backend service for calorie counter application using USDA FoodData Central API",
   "main": "dist/index.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "vercel-build": "tsc",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -18,7 +22,9 @@
     "nutrition",
     "usda",
     "express",
-    "typescript"
+    "typescript",
+    "vercel",
+    "serverless"
   ],
   "author": "",
   "license": "MIT",

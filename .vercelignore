@@ -1,0 +1,47 @@
+# Development files
+.env.local
+.env.development
+.env.test
+
+# Database files
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Development and build artifacts
+node_modules/
+.pnpm-debug.log*
+.pnpm-store/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.pid
+
+# Documentation and examples
+README.md
+.env.example
+
+# Drizzle development files
+drizzle/
+!drizzle.config.ts
+
+# Testing
+coverage/
+.nyc_output/
+test/
+tests/
+__tests__/
+
+# Misc
+.git/
+.gitignore 
