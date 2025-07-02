@@ -5,12 +5,24 @@ import { env } from '../env';
 
 // Create postgres client optimized for serverless (Vercel) environment
 const client = postgres(env.DATABASE_URL, {
-  // SSL configuration
-  ssl: false,
+  // Serverless optimizations - CRITICAL for Vercel
+  max: env.NODE_ENV === 'production' ? 1 : 20, // Limit connections in serverless
+  idle_timeout: 30, // Close idle connections after 30s
+  connect_timeout: 10, // Connection timeout in seconds
+  max_lifetime: 60 * 30, // 30 minutes max connection lifetime
+  
+  // SSL configuration - REQUIRED for Supabase in production
+  ssl: env.NODE_ENV === 'production' ? 'require' : false,
+  
+  // Debug mode for development
   debug: env.NODE_ENV === 'development',
+  
+  // Application name for monitoring
   connection: {
     application_name: 'calorie-counter-backend',
   },
+  
+  // Handle connection errors
   onnotice: (notice: any) => {
     if (env.NODE_ENV === 'development') {
       console.log('Database notice:', notice);
@@ -31,9 +43,11 @@ export const testConnection = async () => {
     console.error('❌ Database connection failed:', error);
     if (error instanceof Error && 'code' in error) {
       if (error.code === 'ENOTFOUND') {
-        console.error('  1. DATABASE_URL environment variable is correct');
+        console.error('❌ Database DNS resolution failed. Check:');
+        console.error('  1. DATABASE_URL environment variable is correct in Vercel');
         console.error('  2. Database instance is active (not paused)');
         console.error('  3. Network connectivity to database host');
+        console.error('  4. SSL is properly configured for production');
       }
     }
     return false;
