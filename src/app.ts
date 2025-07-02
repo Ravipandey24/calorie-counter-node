@@ -1,6 +1,8 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
+import fs from 'fs';
 import { generalLimiterMiddleware } from './middleware/rateLimiter';
 import authRoutes from './routes/auth';
 import calorieRoutes from './routes/calories';
@@ -61,6 +63,23 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV
   });
+});
+
+// Serve API documentation as main page
+app.get('/', (req, res) => {
+  try {
+    // For Vercel deployment, read the file content and send as HTML
+    const htmlPath = path.join(__dirname, '..', 'api-docs.html');
+    const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
+  } catch (error) {
+    logger.error('Error serving API documentation:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Unable to load API documentation',
+    });
+  }
 });
 
 // Routes
