@@ -5,21 +5,12 @@ import { env } from '../env';
 
 // Create postgres client optimized for serverless (Vercel) environment
 const client = postgres(env.DATABASE_URL, {
-  // Serverless optimizations
-  max: env.NODE_ENV === 'production' ? 1 : 20, // Limit connections in serverless
-  idle_timeout: 30, // Close idle connections after 30s
-  connect_timeout: 10, // Connection timeout in seconds
-  // Connection retry settings
-  max_lifetime: 60 * 30, // 30 minutes max connection lifetime
   // SSL configuration
-  ssl: env.NODE_ENV === 'production' ? 'require' : false,
-  // Debug mode for development
+  ssl: false,
   debug: env.NODE_ENV === 'development',
-  // Application name for monitoring
   connection: {
     application_name: 'calorie-counter-backend',
   },
-  // Handle connection errors
   onnotice: (notice: any) => {
     if (env.NODE_ENV === 'development') {
       console.log('Database notice:', notice);
