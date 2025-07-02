@@ -1,0 +1,11 @@
+{
+  "watch": ["src/**/*", "index.html", ".env"],
+  "ext": "ts,js,json,html,env",
+  "ignore": ["node_modules/**/*", "dist/**/*", "drizzle/**/*"],
+  "exec": "tsx src/index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 1000,
+  "verbose": true
+}

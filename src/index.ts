@@ -10,9 +10,10 @@ if (env.NODE_ENV !== 'production') {
   const PORT = env.PORT;
   
   app.listen(PORT, () => {
-    logger.info(`🚀 Server is running on port ${PORT}`);
+    logger.info(`☕ Calorie Counter API Server started on port ${PORT}`);
     logger.info(`📍 Health check: http://localhost:${PORT}/health`);
     logger.info(`🔒 Auth endpoints: http://localhost:${PORT}/auth/*`);
     logger.info(`🍎 Calorie endpoint: http://localhost:${PORT}/get-calories`);
+    logger.info(`🔄 Auto-reload enabled - watching for file changes...`);
   });
 } 

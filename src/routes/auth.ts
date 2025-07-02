@@ -114,20 +114,20 @@ router.post('/login', authLimiterMiddleware, async (req: Request, res: Response)
       .limit(1);
 
     if (!user) {
-      return res.status(401).json({
-        error: 'Unauthorized',
+      return res.status(422).json({
+        error: 'Invalid Credentials',
         message: 'Invalid email or password',
-        status_code: 401,
+        status_code: 422,
       });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
-      return res.status(401).json({
-        error: 'Unauthorized',
+      return res.status(422).json({
+        error: 'Invalid Credentials',
         message: 'Invalid email or password',
-        status_code: 401,
+        status_code: 422,
       });
     }
 

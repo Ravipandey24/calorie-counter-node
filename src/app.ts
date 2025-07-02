@@ -69,7 +69,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   try {
     // For Vercel deployment, read the file content and send as HTML
-    const htmlPath = path.join(__dirname, '..', 'api-docs.html');
+    const htmlPath = path.join(__dirname, '..', 'index.html');
     const htmlContent = fs.readFileSync(htmlPath, 'utf8');
     res.setHeader('Content-Type', 'text/html');
     res.send(htmlContent);
