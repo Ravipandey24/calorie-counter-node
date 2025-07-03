@@ -1,168 +1,341 @@
 # Calorie Counter Backend
 
-A robust Express TypeScript backend service that integrates with the USDA FoodData Central API to provide calorie calculation functionality for various dishes.
+A production-ready Express TypeScript backend service that integrates with the USDA FoodData Central API to provide accurate calorie calculation and nutritional information for various dishes and food items.
+
+## 🏗️ Architecture Flow
+
+![Project Flow Diagram](./assets/project-flow.excalidraw.png)
+
+*Complete request-response flow showing authentication, rate limiting, USDA API integration, and the 4-tier food matching algorithm*
+
 
 ## 📋 Table of Contents
 
+- [Overview](#overview)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [Environment Variables](#environment-variables)
-- [API Endpoints](#api-endpoints)
-  - [Authentication](#authentication)
+- [API Documentation](#api-documentation)
+  - [Authentication Endpoints](#authentication-endpoints)
   - [Calorie Calculation](#calorie-calculation)
   - [Health Check](#health-check)
-- [Database Schema](#database-schema)
+- [Database](#database)
+- [Architecture & Design](#architecture--design)
 - [Security Features](#security-features)
-- [Logging](#logging)
-- [Development Commands](#development-commands)
-- [Testing the API](#testing-the-api)
-- [Error Handling](#error-handling)
-- [Architecture](#architecture)
-  - [🏗️ System Overview](#️-system-overview)
-  - [🔄 API Request Flow](#-api-request-flow)
-  - [🗄️ Database Schema](#️-database-schema)
-  - [🔐 Authentication Flow](#-authentication-flow)
-  - [🌱 USDA Integration Flow](#-usda-integration-flow)
-  - [🚀 Deployment Architecture](#-deployment-architecture)
-  - [📁 Project Structure](#-project-structure)
-  - [🔍 Key Architectural Decisions](#-key-architectural-decisions)
-- [Contributing](#contributing)
-- [Vercel Deployment](#vercel-deployment)
+- [Logging System](#logging-system)
+- [USDA API Integration](#usda-api-integration)
+- [Rate Limiting](#rate-limiting)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 - [License](#license)
+
+## Overview
+
+The Calorie Counter Backend is a serverless-optimized Express.js application that provides comprehensive nutritional information by integrating with the USDA FoodData Central API. It features robust user authentication, intelligent food matching algorithms, and enterprise-grade security measures including Redis-based rate limiting and structured logging.
+
+The system is designed with a serverless-first approach, making it perfect for deployment on Vercel while maintaining excellent performance and scalability. It handles user registration and authentication, processes food queries through advanced matching algorithms, and returns detailed nutritional breakdowns including calories and macronutrients.
 
 ## Features
 
-- 🔐 **User Authentication** - JWT-based authentication with secure password hashing
-- 🍎 **Calorie Calculation** - Integration with USDA FoodData Central API
-- 📊 **Smart Food Matching** - Fuzzy matching algorithm for best food results
-- 🛡️ **Security** - Upstash Redis rate limiting, CORS protection, and input validation
-- 🚀 **Modern Stack** - TypeScript, Express, PostgreSQL, Drizzle ORM
-- ✅ **Validation** - Zod schema validation for all API endpoints
-- 🐍 **snake_case API** - Consistent snake_case formatting for all API payloads and responses
-- 📝 **Professional Logging** - Winston logger with structured logging, file rotation, and environment-specific configurations
-- **Optimized for Vercel serverless deployment**
+- 🔐 **JWT Authentication** - Secure user registration and login with bcrypt password hashing
+- 🍎 **Smart Calorie Calculation** - Advanced food matching and nutritional data from USDA FoodData Central
+- 📊 **Comprehensive Nutrition Data** - Detailed macronutrient breakdowns (protein, carbohydrates, fats, fiber, sugars)
+- 🛡️ **Enterprise Security** - Upstash Redis rate limiting, CORS protection, Helmet security headers
+- 🚀 **Serverless Architecture** - Optimized for Vercel deployment with cold start optimizations
+- ✅ **Input Validation** - Comprehensive Zod schema validation for all endpoints
+- 🐍 **Consistent API Format** - snake_case formatting for all API requests and responses
+- 📝 **Professional Logging** - Winston-based structured logging with environment-specific configurations
+- 🔄 **Intelligent Food Matching** - Multi-tier fuzzy matching algorithm for accurate food identification
+- ⚡ **Performance Optimized** - Connection pooling, request timeouts, and efficient database queries
 
 ## Tech Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Language**: TypeScript
-- **Database**: PostgreSQL
-- **ORM**: Drizzle ORM
-- **Validation**: Zod
-- **Authentication**: JWT + bcrypt
-- **Security**: Helmet, CORS, Rate Limiting
-- **Logging**: Winston with structured logging
-- **Caching/Rate Limiting**: Upstash Redis
-- **Vercel**: Serverless deployment
+### Core Technologies
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js with TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: JWT tokens with bcrypt password hashing
+- **Validation**: Zod schemas for runtime type safety
+
+### External Services
+- **USDA FoodData Central API**: Nutritional data source
+- **Upstash Redis**: Distributed rate limiting and caching
+- **Vercel**: Serverless deployment platform
+
+### Security & Monitoring
+- **Security**: Helmet.js, CORS, comprehensive input validation
+- **Logging**: Winston with structured JSON logging
+- **Rate Limiting**: Redis-based with IP tracking
+- **Error Handling**: Centralized error management with proper HTTP status codes
+
+### Development Tools
+- **TypeScript**: Full type safety across the application
+- **Drizzle Kit**: Database migrations and management
+- **pnpm**: Fast, efficient package management
+- **tsx**: Fast TypeScript execution for development
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── app.ts                 # Express app configuration
+│   ├── index.ts              # Entry point with Vercel compatibility
+│   ├── env.ts                # Environment validation with Zod
+│   ├── db/
+│   │   ├── connection.ts     # Database connection with pooling
+│   │   └── schema.ts         # Drizzle schema definitions
+│   ├── middleware/
+│   │   ├── auth.ts           # JWT authentication middleware
+│   │   └── rateLimiter.ts    # Upstash Redis rate limiting
+│   ├── routes/
+│   │   ├── auth.ts           # Authentication endpoints
+│   │   └── calories.ts       # Calorie calculation endpoints
+│   ├── services/
+│   │   └── usdaService.ts    # USDA API integration
+│   ├── types/
+│   │   └── index.ts          # TypeScript types and Zod schemas
+│   └── utils/
+│       ├── logger.ts         # Winston logging configuration
+│       └── validation.ts     # Validation helpers
+├── drizzle/                  # Database migrations
+├── api/                      # Vercel API route
+├── vercel.json              # Vercel deployment configuration
+├── drizzle.config.ts        # Database configuration
+└── package.json             # Dependencies and scripts
+```
+
+### Key Design Patterns
+
+**Modular Architecture**: Clear separation of concerns with dedicated modules for authentication, validation, logging, and business logic.
+
+**Serverless Optimization**: App configuration is separated from server startup to optimize cold starts in serverless environments.
+
+**Type Safety**: Full TypeScript coverage with runtime validation using Zod schemas.
+
+**Error Boundaries**: Comprehensive error handling with consistent error response formats.
+
+**Security Layers**: Multiple security layers including authentication, rate limiting, input validation, and security headers.
 
 ## Prerequisites
 
-- Node.js 18+ and pnpm
-- PostgreSQL database
-- USDA FoodData Central API key ([Get one here](https://fdc.nal.usda.gov/api-key-signup.html))
+### Required Software
+- **Node.js 18+** - JavaScript runtime
+- **pnpm** - Package manager (preferred over npm/yarn for performance)
+- **PostgreSQL** - Database (local or cloud instance)
+
+### Required Accounts & Services
+- **USDA API Key** - Get from [USDA FoodData Central](https://fdc.nal.usda.gov/api-key-signup.html)
+- **Upstash Redis** - Create account at [Upstash](https://console.upstash.com/)
+- **PostgreSQL Database** - Choose from:
+  - Local PostgreSQL installation
+  - [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
+  - [Neon](https://neon.tech/) (recommended for serverless)
+  - [Supabase](https://supabase.com/)
+  - [PlanetScale](https://planetscale.com/)
+
+### Development Environment
+- **Code Editor** - VS Code recommended with TypeScript extensions
+- **Git** - Version control
+- **Terminal** - Command line interface
 
 ## Quick Start
 
-1. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+### 1. Installation
+```bash
+# Clone the repository (if not already cloned)
+git clone <repository-url>
+cd backend
 
-2. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your actual values
-   ```
+# Install dependencies
+pnpm install
+```
 
-3. **Database Setup**
-   ```bash
-   # Generate migrations
-   pnpm db:generate
-   
-   # Run migrations
-   pnpm db:migrate
-   ```
+### 2. Environment Configuration
+```bash
+# Copy environment template
+cp env.example .env
 
-4. **Start Development Server**
-   ```bash
-   pnpm dev
-   ```
+# Edit .env with your actual values
+# Required: DATABASE_URL, USDA_API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, JWT_SECRET
+```
+
+### 3. Database Setup
+```bash
+# Generate database schema
+pnpm db:generate
+
+# Apply migrations to database
+pnpm db:migrate
+
+# Optional: Open Drizzle Studio to view database
+pnpm db:studio
+```
+
+### 4. Start Development Server
+```bash
+# Start with hot reload
+pnpm dev
+
+# The server will start on http://localhost:3001
+# API documentation available at http://localhost:3001
+```
+
+### 5. Verify Installation
+Test the health endpoint:
+```bash
+curl http://localhost:3001/health
+```
+
+Expected response:
+```json
+{
+  "status": "OK",
+  "message": "Calorie Counter API is running",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "environment": "development"
+}
+```
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
-| `USDA_API_KEY` | USDA FoodData Central API key | `your_api_key_here` |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL | `https://your-redis.upstash.io` |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token | `your_redis_token` |
-| `JWT_SECRET` | Secret for JWT token signing | `your_secret_key` |
-| `JWT_EXPIRES_IN` | JWT token expiration time | `7d` |
-| `PORT` | Server port | `3001` |
-| `NODE_ENV` | Environment mode | `development` |
-| `CORS_ORIGIN` | Frontend URL for CORS | `http://localhost:3000` |
+### Required Variables
 
-## API Endpoints
+| Variable | Description | Example | Notes |
+|----------|-------------|---------|--------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` | Must include connection pooling parameters for production |
+| `USDA_API_KEY` | USDA FoodData Central API key | `abcd1234-5678-90ef-ghij-klmnopqr` | Get from USDA website, free tier available |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL | `https://xxx-yyy-zzz.upstash.io` | Create free account on Upstash |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token | `AYASxxx...` | Found in Upstash dashboard |
+| `JWT_SECRET` | JWT signing secret | `minimum-32-character-secret-key` | **Must be 32+ characters for security** |
 
-### Authentication
+### Optional Variables
 
-#### Register User
+| Variable | Description | Default | Valid Values |
+|----------|-------------|---------|--------------|
+| `JWT_EXPIRES_IN` | JWT token expiration | `7d` | Any valid time string (1h, 24h, 7d, etc.) |
+| `PORT` | Server port | `3001` | Any available port number |
+| `NODE_ENV` | Environment mode | `development` | `development`, `production`, `test` |
+| `CORS_ORIGIN` | Frontend URL for CORS | `http://localhost:3000` | Must match your frontend URL exactly |
+
+### Environment Setup Examples
+
+**Development (.env)**
+```bash
+DATABASE_URL=postgresql://postgres:password@localhost:5432/calorie_counter
+USDA_API_KEY=your_actual_usda_api_key_here
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_redis_token_here
+JWT_SECRET=your-very-secure-jwt-secret-key-minimum-32-characters
+JWT_EXPIRES_IN=7d
+PORT=3001
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:3000
+```
+
+**Production (Vercel)**
+- Set all variables through Vercel dashboard or CLI
+- Use cloud database URLs with connection pooling
+- Generate secure JWT secret: `openssl rand -hex 32`
+- Set `CORS_ORIGIN` to your deployed frontend URL
+
+### Security Considerations
+
+- **Never commit `.env` files** to version control
+- **JWT_SECRET**: Use cryptographically secure random string (32+ chars)
+- **Database**: Use strong passwords and connection pooling
+- **Redis**: Keep tokens secure and regenerate if compromised
+- **CORS_ORIGIN**: Set to specific domain, never use wildcards in production
+
+## API Documentation
+
+The API follows RESTful principles with consistent snake_case formatting for all requests and responses. All endpoints except `/health` require proper authentication and are subject to rate limiting.
+
+### Base URL
+- **Development**: `http://localhost:3001`
+- **Production**: `https://your-app.vercel.app`
+
+### Authentication Endpoints
+
+#### Register New User
+Creates a new user account with encrypted password storage.
+
 ```http
 POST /auth/register
 Content-Type: application/json
 
 {
   "first_name": "John",
-  "last_name": "Doe",
-  "email": "john@example.com",
-  "password": "secure123"
+  "last_name": "Doe", 
+  "email": "john.doe@example.com",
+  "password": "secure_password123"
 }
 ```
 
-**Response:**
+**Success Response (201 Created):**
 ```json
 {
   "user": {
     "id": 1,
     "first_name": "John",
     "last_name": "Doe",
-    "email": "john@example.com"
+    "email": "john.doe@example.com"
   },
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-#### Login User
+**Validation Requirements:**
+- `first_name`: 1-50 characters, required
+- `last_name`: 1-50 characters, required  
+- `email`: Valid email format, unique
+- `password`: Minimum 8 characters
+
+**Error Responses:**
+- `400`: Validation errors (invalid input format)
+- `409`: Email already exists
+
+#### User Login
+Authenticates existing user and returns JWT token.
+
 ```http
 POST /auth/login
 Content-Type: application/json
 
 {
-  "email": "john@example.com",
-  "password": "secure123"
+  "email": "john.doe@example.com",
+  "password": "secure_password123"
 }
 ```
 
-**Response:**
+**Success Response (200 OK):**
 ```json
 {
   "user": {
     "id": 1,
-    "first_name": "John",
+    "first_name": "John", 
     "last_name": "Doe",
-    "email": "john@example.com"
+    "email": "john.doe@example.com"
   },
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
+**Error Responses:**
+- `400`: Validation errors
+- `422`: Invalid email or password
+
 ### Calorie Calculation
 
-#### Get Calories
+#### Get Nutritional Information
+Calculates calories and macronutrients for a specified dish and serving size.
+
 ```http
 POST /get-calories
 Authorization: Bearer <jwt_token>
@@ -174,7 +347,7 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+**Success Response (200 OK):**
 ```json
 {
   "dish_name": "chicken biryani",
@@ -226,732 +399,1624 @@ Content-Type: application/json
 }
 ```
 
+**Request Requirements:**
+- `dish_name`: Non-empty string, food item name
+- `servings`: Positive number, portion size multiplier
+
+**Error Responses:**
+- `400`: Invalid input (empty dish name, non-positive servings)
+- `401`: Missing or invalid authentication token
+- `404`: Food item not found in USDA database
+- `422`: Food found but no calorie information available
+- `429`: Rate limit exceeded
+
 ### Health Check
+
+#### System Status
+Returns current system status and basic information.
+
 ```http
 GET /health
 ```
 
-## Database Schema
-
-### Users Table
-- `id` - Primary key
-- `firstName` - User's first name (stored as camelCase in DB)
-- `lastName` - User's last name (stored as camelCase in DB)
-- `email` - Unique email address
-- `passwordHash` - Bcrypt hashed password
-- `createdAt` - Registration timestamp
-- `updatedAt` - Last update timestamp
-
-**Note:** Database uses camelCase internally, but API responses use snake_case format.
-
-## Security Features
-
-- **Rate Limiting (Upstash Redis)**: 
-  - General endpoints: 100 req/5min
-  - Calorie endpoints: 15 req/5min
-  - Auth endpoints: 5 req/5min
-  - Persistent across server restarts
-  - Serverless-compatible
-- **Password Security**: Bcrypt with 12 salt rounds
-- **JWT Authentication**: Secure token-based auth
-- **Input Validation**: Zod schema validation
-- **CORS Protection**: Configurable origin whitelist
-
-## Logging
-
-The application uses **Winston** for professional logging with:
-
-- **Log Levels**: error, warn, info, http, debug
-- **Structured Logging**: JSON format with metadata
-- **Console Output**: Colorized logs for development
-- **File Logging**: Separate error and combined logs in production
-- **Request Logging**: HTTP requests with timing and status codes
-- **Exception Handling**: Automatic logging of uncaught exceptions and unhandled rejections
-
-**Log Files** (Production only):
-- `logs/error.log` - Error level logs only
-- `logs/combined.log` - All log levels
-- `logs/exceptions.log` - Uncaught exceptions
-- `logs/rejections.log` - Unhandled promise rejections
-
-**Development**: Console output with colors and timestamps  
-**Production**: File logging with JSON format for log aggregation
-
-## Development Commands
-
-```bash
-# Development server with hot reload
-pnpm dev
-
-# Build production bundle
-pnpm build
-
-# Start production server
-pnpm start
-
-# Database operations
-pnpm db:generate    # Generate migrations
-pnpm db:migrate     # Run migrations
-pnpm db:push        # Push schema changes
-pnpm db:studio      # Open Drizzle Studio
+**Response (200 OK):**
+```json
+{
+  "status": "OK",
+  "message": "Calorie Counter API is running", 
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "environment": "development"
+}
 ```
 
-## Testing the API
+### Error Response Format
 
-Test with common dishes:
-- "macaroni and cheese"
-- "grilled salmon" 
-- "paneer butter masala"
-- "pasta alfredo"
-
-## Error Handling
-
-The API returns consistent error responses:
+All error responses follow a consistent format:
 
 ```json
 {
   "error": "Error Type",
-  "message": "Detailed error message",
+  "message": "Detailed error description",
   "status_code": 400
 }
 ```
 
-Common error codes:
-- `400` - Bad Request (validation errors)
-- `401` - Unauthorized (missing/invalid token)
-- `404` - Not Found (dish not found)
-- `409` - Conflict (email already exists)
-- `422` - Unprocessable Entity (no calorie data)
-- `429` - Too Many Requests (rate limited)
-- `500` - Internal Server Error
+### Rate Limiting Headers
 
-## Architecture
+All responses include rate limiting information:
 
-The Calorie Counter Backend follows a modern, serverless-first architecture designed for scalability, security, and maintainability. Below are detailed architectural diagrams explaining the system design.
-
-### 🏗️ System Overview
-
-```mermaid
-graph TB
-    Client[Frontend Application] --> LB[Load Balancer/CDN]
-    LB --> API[Express.js API Server]
-    
-    API --> Auth[JWT Authentication]
-    API --> RL[Rate Limiter]
-    API --> Val[Zod Validation]
-    
-    Auth --> JWT[JWT Token Service]
-    RL --> Redis[(Upstash Redis)]
-    
-    API --> AuthRoute[Auth Routes]
-    API --> CalRoute[Calorie Routes]
-    API --> Health[Health Check]
-    
-    AuthRoute --> AuthServ[Auth Service]
-    CalRoute --> CalServ[Calorie Service]
-    CalServ --> USDA[USDA API Service]
-    
-    AuthServ --> DB[(PostgreSQL)]
-    USDA --> USDAApi[USDA FoodData Central API]
-    
-    DB --> Drizzle[Drizzle ORM]
-    
-    API --> Logger[Winston Logger]
-    Logger --> Logs[Log Files]
-    
-    subgraph "Security Layer"
-        Auth
-        RL
-        Val
-        Helmet[Helmet.js Security]
-    end
-    
-    subgraph "External Services"
-        Redis
-        USDAApi
-        DB
-    end
-    
-    subgraph "Deployment"
-        Vercel[Vercel Serverless]
-        API --> Vercel
-    end
-    
-    style Client fill:#e1f5fe
-    style API fill:#f3e5f5
-    style DB fill:#e8f5e8
-    style Redis fill:#fff3e0
-    style USDAApi fill:#f1f8e9
-    style Vercel fill:#fce4ec
+```http
+RateLimit-Limit: 100
+RateLimit-Remaining: 95
+RateLimit-Reset: 2024-01-01T12:05:00.000Z
 ```
 
-### 🔄 API Request Flow
+## Database
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as Express API
-    participant Auth as JWT Middleware
-    participant RL as Rate Limiter
-    participant Val as Zod Validator
-    participant Service as Business Logic
-    participant DB as PostgreSQL
-    participant USDA as USDA API
+### Schema Design
 
-    Client->>API: POST /get-calories
-    API->>RL: Check rate limit
-    RL->>Redis: Validate IP limit
-    Redis-->>RL: Allow/Deny
-    RL-->>API: Rate limit result
-    
-    alt Rate limit exceeded
-        API-->>Client: 429 Too Many Requests
-    else Rate limit OK
-        API->>Auth: Verify JWT token
-        Auth-->>API: User authenticated
-        
-        API->>Val: Validate request body
-        Val-->>API: Validation result
-        
-        alt Validation failed
-            API-->>Client: 400 Bad Request
-        else Validation OK
-            API->>Service: Process calorie request
-            Service->>USDA: Search food data
-            USDA-->>Service: Food nutrition data
-            Service->>Service: Calculate calories
-            Service-->>API: Calorie results
-            API-->>Client: 200 Success with data
-        end
-    end
+The application uses PostgreSQL with Drizzle ORM for type-safe database operations. The schema is designed for scalability and future feature expansion.
 
-    Note over Client,USDA: All responses include structured logging
+#### Users Table
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
 ```
 
-### 🗄️ Database Schema
+**Field Details:**
+- `id`: Auto-incrementing primary key
+- `first_name/last_name`: User's name (max 50 chars each)
+- `email`: Unique identifier, validated format
+- `password_hash`: bcrypt hashed password (12 salt rounds)
+- `created_at/updated_at`: Automatic timestamp tracking
 
-```mermaid
-erDiagram
-    USERS {
-        serial id PK
-        varchar firstName
-        varchar lastName
-        varchar email UK
-        text passwordHash
-        timestamp createdAt
-        timestamp updatedAt
+**Data Conversion Notes:**
+- Database stores fields in camelCase (`firstName`, `lastName`)
+- API responses convert to snake_case (`first_name`, `last_name`)
+- This conversion is handled automatically by the response formatters
+
+### Database Operations
+
+#### Connection Management
+- **Development**: Standard connection pool with configurable limits
+- **Production**: Optimized for serverless with connection pooling
+- **Timeout Settings**: 2-second connection timeout, 30-second idle timeout
+- **Pool Configuration**: Max 1 connection in production, 20 in development
+
+#### Migration Management
+```bash
+# Generate new migration after schema changes
+pnpm db:generate
+
+# Apply migrations to database
+pnpm db:migrate
+
+# Push schema directly (development only)
+pnpm db:push
+
+# Open database browser
+pnpm db:studio
+```
+
+#### Type Safety
+- Full TypeScript types generated from schema
+- Runtime validation with Zod schemas
+- Compile-time query validation with Drizzle
+
+### Future Schema Extensions
+
+The current schema is designed to support future features:
+
+**Calorie Logs Table (Planned)**
+```sql
+CREATE TABLE calorie_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  dish_name VARCHAR(255) NOT NULL,
+  servings INTEGER NOT NULL,
+  calories_per_serving DECIMAL(10,2),
+  total_calories DECIMAL(10,2),
+  source VARCHAR(100),
+  ingredient_breakdown JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+This would enable:
+- User calorie history tracking
+- Personalized nutrition analytics
+- Favorite foods and recent searches
+- Daily/weekly calorie summaries
+
+## Architecture & Design
+
+### Core Principles
+
+**Serverless-First Design**
+The application is architected specifically for serverless deployment with optimizations for:
+- Cold start performance through minimal imports
+- Stateless operation with JWT authentication
+- Connection pooling optimized for short-lived functions
+- Environment variable validation at startup
+
+**Type Safety**
+- Full TypeScript coverage across the entire application
+- Runtime validation using Zod schemas
+- Database operations with Drizzle ORM type generation
+- API response type enforcement
+
+**Security by Design**
+- Multiple security layers: authentication, rate limiting, input validation
+- Secure defaults for all configuration options
+- Comprehensive logging for security monitoring
+- Regular dependency updates and vulnerability scanning
+
+### Request Lifecycle
+
+**1. Request Reception**
+- Helmet.js applies security headers
+- CORS validation against allowed origins
+- Request logging with unique correlation IDs
+- Body parsing with size limits
+
+**2. Rate Limiting**
+- IP-based rate limiting using Upstash Redis
+- Different limits for different endpoint types
+- Persistent rate limiting across serverless restarts
+- Rate limit headers in all responses
+
+**3. Authentication** (Protected endpoints only)
+- JWT token extraction from Authorization header
+- Token verification using secret key
+- User information lookup from database
+- Request context enhancement with user data
+
+**4. Input Validation**
+- Zod schema validation for all request bodies
+- Type coercion and sanitization
+- Detailed validation error messages
+- Early return on validation failures
+
+**5. Business Logic**
+- Service layer processing with error handling
+- External API integration (USDA)
+- Database operations with transaction support
+- Response data formatting
+
+**6. Response**
+- Consistent error response formatting
+- snake_case conversion for API responses
+- Response logging with timing information
+- Security header application
+
+### Data Flow Architecture
+
+**User Registration/Login Flow**
+```
+Client Request → Rate Limiter → Input Validation → 
+Email Uniqueness Check → Password Hashing → 
+Database Insert → JWT Generation → Response
+```
+
+**Calorie Calculation Flow**
+```
+Client Request → Rate Limiter → Authentication → 
+Input Validation → USDA API Search → 
+Food Matching Algorithm → Nutrition Calculation → 
+Response Formatting → Client Response
+```
+
+### Error Handling Strategy
+
+**Centralized Error Management**
+- Global error handler catches all unhandled exceptions
+- Consistent error response format across all endpoints
+- Proper HTTP status codes for different error types
+- Detailed logging for debugging without exposing internals
+
+**Error Response Categories**
+- **Client Errors (4xx)**: Validation, authentication, not found
+- **Server Errors (5xx)**: Database issues, external API failures
+- **Rate Limiting (429)**: Request quota exceeded
+- **Validation Errors (400)**: Detailed field-level error messages
+
+### Performance Optimizations
+
+**Database Optimizations**
+- Connection pooling with environment-specific settings
+- Query optimization with proper indexing
+- Prepared statements for security and performance
+- Timeout configuration to prevent hanging requests
+
+**External API Optimizations**
+- Request timeouts to prevent cascading failures
+- Intelligent caching strategies (future enhancement)
+- Retry logic with exponential backoff (future enhancement)
+- Response size limits to prevent memory issues
+
+**Memory Management**
+- Minimal imports in serverless entry points
+- Efficient object creation and cleanup
+- Streaming for large responses (future enhancement)
+- Memory leak prevention in long-running processes
+
+## Security Features
+
+### Multi-Layer Security Architecture
+
+**Authentication & Authorization**
+- **JWT Tokens**: Stateless authentication with configurable expiration
+- **bcrypt Hashing**: Password hashing with 12 salt rounds for maximum security
+- **Token Validation**: Automatic user lookup and context injection
+- **Secret Key Validation**: Enforced minimum 32-character JWT secrets
+
+**Rate Limiting with Upstash Redis**
+The application implements sophisticated rate limiting using Upstash Redis for persistence across serverless deployments:
+
+- **General Endpoints**: 100 requests per 5 minutes per IP
+- **Calorie Calculation**: 15 requests per 5 minutes per IP (more restrictive due to external API costs)
+- **Authentication**: 5 requests per 5 minutes per IP (prevents brute force attacks)
+- **Sliding Window**: Smooth rate limiting without burst allowances
+- **Persistent Storage**: Rate limits maintained across server restarts
+- **Analytics**: Rate limit analytics and monitoring built-in
+
+**Input Validation & Sanitization**
+- **Zod Schema Validation**: Runtime type checking for all endpoints
+- **Request Size Limits**: 10MB limit to prevent DoS attacks
+- **SQL Injection Prevention**: Parameterized queries through Drizzle ORM
+- **XSS Prevention**: Input sanitization and proper content-type headers
+
+**HTTP Security Headers (Helmet.js)**
+```javascript
+// Applied security headers:
+Content-Security-Policy: default-src 'self'
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Download-Options: noopen
+X-Permitted-Cross-Domain-Policies: none
+```
+
+**CORS Configuration**
+- **Origin Whitelist**: Specific domain allowlist (no wildcards in production)
+- **Credentials Support**: Secure cookie and header transmission
+- **Method Restrictions**: Limited to required HTTP methods
+- **Header Validation**: Controlled header access
+
+### Security Monitoring
+
+**Request Logging**
+- Every request logged with IP, user agent, timing
+- Security events (auth failures, rate limits) highlighted
+- Correlation IDs for request tracing
+- No sensitive data (passwords, tokens) in logs
+
+**Error Handling Security**
+- Generic error messages to prevent information disclosure
+- Internal error details logged but not exposed
+- Stack traces hidden in production
+- Proper HTTP status codes without revealing system internals
+
+**Environment Security**
+- Automatic environment variable validation at startup
+- Required security configuration enforced
+- Development vs production security profile differences
+- No default or weak passwords allowed
+
+### Best Practices Implementation
+
+**Password Security**
+- Minimum 8 character requirement (configurable)
+- bcrypt with 12 salt rounds (industry standard)
+- No password storage in logs or error messages
+- Password validation on both client and server
+
+**JWT Security**
+- Configurable expiration times (default 7 days)
+- Secure secret key generation and validation
+- No sensitive data in JWT payload
+- Proper token verification and error handling
+
+**Database Security**
+- Connection string validation and encryption
+- Connection pooling with timeout protection
+- No direct SQL query execution
+- Prepared statements through ORM
+
+**Dependency Security**
+- Regular dependency updates via package.json
+- Known vulnerability scanning (recommend `npm audit`)
+- Minimal dependency footprint
+- Production vs development dependency separation
+
+## Logging System
+
+### Professional Logging with Winston
+
+The application implements enterprise-grade logging using Winston with environment-specific configurations and structured data formatting.
+
+**Log Levels & Usage**
+- **error**: System errors, exceptions, failed operations
+- **warn**: Non-fatal issues, rate limit hits, deprecated usage
+- **info**: General application flow, user actions, system events
+- **http**: HTTP request/response logging with timing
+- **debug**: Detailed debugging information (development only)
+
+**Structured Logging Format**
+```javascript
+// Example log entry
+{
+  "level": "info",
+  "message": "User registration successful",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "userId": 123,
+  "email": "user@example.com",
+  "ip": "192.168.1.1",
+  "userAgent": "Mozilla/5.0...",
+  "duration": "45ms"
+}
+```
+
+**Environment-Specific Configuration**
+
+**Development Environment**
+- **Console Output**: Colorized, human-readable format
+- **Log Level**: Debug and above
+- **File Logging**: Disabled for fast development cycles
+- **Error Handling**: Stack traces included
+
+**Production Environment**
+- **File Logging**: JSON format for log aggregation
+- **Log Level**: Info and above
+- **File Rotation**: Automatic rotation to prevent disk space issues
+- **Error Handling**: Structured error logging without stack traces
+
+**Log Files (Production Only)**
+```
+logs/
+├── error.log          # Error level logs only
+├── combined.log       # All log levels
+├── exceptions.log     # Uncaught exceptions
+└── rejections.log     # Unhandled promise rejections
+```
+
+### HTTP Request Logging
+
+**Request Logging**
+Every incoming request is logged with comprehensive metadata:
+```javascript
+{
+  "level": "http",
+  "message": "POST /get-calories",
+  "method": "POST",
+  "url": "/get-calories?param=value",
+  "path": "/get-calories",
+  "ip": "192.168.1.1",
+  "userAgent": "PostmanRuntime/7.29.0",
+  "contentLength": "45"
+}
+```
+
+**Response Logging**
+Responses are logged with performance metrics:
+```javascript
+{
+  "level": "http",
+  "message": "POST /get-calories 200 - 234ms",
+  "method": "POST", 
+  "path": "/get-calories",
+  "statusCode": 200,
+  "duration": "234ms",
+  "ip": "192.168.1.1",
+  "responseSize": "1024"
+}
+```
+
+### Security & Privacy
+
+**Data Protection**
+- **No Sensitive Data**: Passwords, tokens, and personal data excluded
+- **IP Logging**: For security monitoring and rate limiting
+- **User Context**: User IDs logged for audit trails (no personal info)
+- **Request Sanitization**: Sensitive headers and query parameters filtered
+
+**Error Logging Strategy**
+- **Internal Errors**: Full detail logged for debugging
+- **User Errors**: Generic messages logged without internal details
+- **Security Events**: Authentication failures and rate limits highlighted
+- **Exception Handling**: Automatic logging of uncaught exceptions
+
+### Log Analysis & Monitoring
+
+**Structured Data Benefits**
+- **Easy Parsing**: JSON format for log aggregation services
+- **Searchable**: Key-value pairs enable efficient searching
+- **Alerting**: Structured data enables automated alerting
+- **Performance Tracking**: Request timing and performance metrics
+
+**Recommended Log Analysis Tools**
+- **ELK Stack**: Elasticsearch, Logstash, Kibana for full log analysis
+- **Vercel Analytics**: Built-in monitoring for Vercel deployments
+- **CloudWatch**: AWS log monitoring and alerting
+- **Datadog**: Professional monitoring with alerting and dashboards
+
+## USDA API Integration
+
+### Intelligent Food Matching Algorithm
+
+The system implements a sophisticated 4-tier matching algorithm to find the most accurate nutritional data from the USDA FoodData Central database. The algorithm prioritizes accuracy and data quality through multiple matching strategies.
+
+**Matching Strategy Hierarchy**
+
+The matching algorithm processes food searches in the following priority order, returning immediately when a match is found:
+
+**Level 1: Exact Match (Highest Priority)**
+```javascript
+// Case-insensitive exact string comparison
+query: "chicken breast"
+matches: "Chicken Breast" ✓
+matches: "CHICKEN BREAST" ✓
+matches: "Chicken breast, grilled" ✗ (not exact)
+```
+- **Purpose**: Find foods with identical names
+- **Implementation**: Normalizes both query and food description to lowercase
+- **Use Case**: Common foods with standard names ("apple", "banana", "rice")
+- **Success Rate**: ~15-20% of queries (high precision)
+
+**Level 2: Starts With Matching**
+```javascript
+// Food description begins with the search query
+query: "chicken"
+matches: "Chicken breast, grilled" ✓
+matches: "Chicken biryani" ✓ 
+matches: "Grilled chicken breast" ✗ (doesn't start with query)
+```
+- **Purpose**: Find foods where the main ingredient comes first
+- **Implementation**: Checks if food description starts with normalized query
+- **Use Case**: Specific preparations ("pasta alfredo", "salmon fillet")
+- **Success Rate**: ~25-30% of queries
+
+**Level 3: Contains Matching**
+```javascript
+// Food description contains the search query anywhere
+query: "biryani"
+matches: "Chicken biryani, restaurant style" ✓
+matches: "Vegetable biryani with rice" ✓
+matches: "Rice and chicken curry" ✗ (doesn't contain "biryani")
+```
+- **Purpose**: Find foods with query term anywhere in description
+- **Implementation**: Simple substring search in lowercase description
+- **Use Case**: Complex dishes, ethnic foods, specific preparations
+- **Success Rate**: ~40-50% of queries
+
+**Level 4: Comprehensive Scoring Algorithm**
+When exact matches aren't found, the system calculates a composite score for each food item:
+
+```javascript
+// Word-by-word matching algorithm
+queryWords = ["chicken", "biryani"]
+foodDescription = "Chicken biryani, restaurant style"
+foodWords = ["chicken", "biryani", "restaurant", "style"]
+
+// Calculate word match percentage
+matchingWords = ["chicken", "biryani"] // 2 matches
+wordMatchScore = (2 / 2) * 100 = 100 points
+
+// Add data type priority bonus
+dataTypePriority = {
+  'Foundation': +20,      // Lab-analyzed, highest quality
+  'SR Legacy': +15,       // Standard reference data
+  'Survey (FNDDS)': +10,  // Dietary survey data  
+  'Branded': +5           // Commercial product data
+}
+
+// Bonus for calorie availability
+calorieBonus = hasEnergyData ? +10 : 0
+
+// Penalty for overly long descriptions (usually less relevant)
+lengthPenalty = description.length > 100 ? -5 : 0
+
+// Final calculation
+finalScore = wordMatchScore + dataTypePriority + calorieBonus + lengthPenalty
+```
+
+**Scoring Example**:
+```javascript
+// Query: "chicken biryani"
+Food Option 1: "Chicken biryani" (Survey FNDDS)
+- Word match: 100% (2/2 words) = 100 points
+- Data type: Survey = +10 points  
+- Has calories: +10 points
+- Length penalty: 0 points
+- Total: 120 points
+
+Food Option 2: "Chicken biryani, restaurant preparation" (Branded)
+- Word match: 100% (2/2 words) = 100 points
+- Data type: Branded = +5 points
+- Has calories: +10 points  
+- Length penalty: -5 points (long description)
+- Total: 110 points
+
+Result: Option 1 selected (higher score)
+```
+
+**Fallback Strategy**:
+- **Minimum Score Threshold**: 20 points required for selection
+- **Default Fallback**: If no food scores above threshold, returns first available food
+- **Error Handling**: Returns meaningful error if no foods found at all
+
+### Data Source Prioritization
+
+**USDA Data Types (Quality Hierarchy)**
+
+The USDA FoodData Central database contains four main data types, prioritized by accuracy and reliability:
+
+**1. Foundation Foods (Highest Quality - +20 Score Bonus)**
+```javascript
+dataType: "Foundation"
+description: "Apple, raw"
+characteristics: {
+  source: "Laboratory analysis",
+  nutrients: "Comprehensive nutrient profiles", 
+  accuracy: "Highest precision",
+  coverage: "~2,000 foods",
+  useCase: "Basic ingredients, whole foods"
+}
+```
+- **Laboratory-analyzed data** with comprehensive nutrient profiles
+- **Most accurate** calorie and macronutrient information
+- **Limited scope**: Covers basic ingredients and whole foods
+- **Best for**: Simple searches like "apple", "chicken breast", "brown rice"
+
+**2. SR Legacy (High Quality - +15 Score Bonus)**
+```javascript
+dataType: "SR Legacy" 
+description: "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+characteristics: {
+  source: "USDA Standard Reference Legacy",
+  nutrients: "Well-documented profiles",
+  accuracy: "High precision", 
+  coverage: "~7,500 foods",
+  useCase: "Common foods and preparations"
+}
+```
+- **Standard Reference database** maintained by USDA
+- **Reliable nutrient data** for common foods
+- **Good coverage** of basic foods and cooking methods
+- **Best for**: Standard preparations like "grilled chicken", "steamed vegetables"
+
+**3. Survey (FNDDS) (Medium Quality - +10 Score Bonus)**
+```javascript
+dataType: "Survey (FNDDS)"
+description: "Chicken biryani"
+characteristics: {
+  source: "Food and Nutrient Database for Dietary Studies",
+  nutrients: "Representative of consumed foods",
+  accuracy: "Good for mixed dishes",
+  coverage: "~7,000 foods", 
+  useCase: "Complex dishes, ethnic foods, restaurant meals"
+}
+```
+- **Dietary survey data** representing foods as commonly consumed
+- **Excellent for complex dishes** and mixed preparations
+- **Realistic portion sizes** and preparation methods
+- **Best for**: Complex searches like "chicken biryani", "pasta alfredo", "taco salad"
+
+**4. Branded Foods (Variable Quality - +5 Score Bonus)**
+```javascript
+dataType: "Branded"
+description: "CLIF BAR, Chocolate Chip"
+characteristics: {
+  source: "Manufacturer-provided data",
+  nutrients: "Variable quality",
+  accuracy: "Depends on manufacturer",
+  coverage: "~200,000+ products",
+  useCase: "Commercial products, packaged foods"
+}
+```
+- **Manufacturer-provided** nutritional information
+- **Largest database** with extensive product coverage
+- **Variable accuracy** depending on data source quality
+- **Best for**: Specific brand searches like "Cheerios", "Coca Cola", "McDonald's Big Mac"
+
+### API Request Optimization
+
+**Request Configuration**
+```javascript
+// Optimized USDA API request
+const requestBody = {
+  query: dishName.trim(),                    // Clean input
+  dataType: [                               // All data types included
+    'Foundation', 
+    'SR Legacy', 
+    'Survey (FNDDS)', 
+    'Branded'
+  ],
+  pageSize: 25,                             // Balance: speed vs options
+  sortBy: 'dataType.keyword',               // Prioritize data quality
+  sortOrder: 'asc'                          // Foundation foods first
+};
+
+// Request options
+{
+  timeout: 10000,                           // 10-second timeout
+  headers: { 'Content-Type': 'application/json' },
+  params: { api_key: USDA_API_KEY }
+}
+```
+
+**Performance Features**
+- **Timeout Protection**: 10-second request timeout prevents hanging requests
+- **Response Validation**: Validates API response structure and data availability
+- **Error Categorization**: Specific error handling for different failure types
+- **Efficient Pagination**: Requests optimal number of results (25) for speed vs accuracy
+
+**Search Query Optimization**
+```javascript
+// Query preprocessing
+const preprocessQuery = (query) => {
+  return query
+    .trim()                                 // Remove whitespace
+    .toLowerCase()                          // Normalize case
+    .replace(/[^\w\s]/g, '')               // Remove special characters
+    .replace(/\s+/g, ' ');                 // Normalize spaces
+};
+
+// Example transformations
+"Chicken Breast!!!" → "chicken breast"
+"  pasta   alfredo  " → "pasta alfredo"
+"café latte" → "cafe latte"
+```
+
+### Nutritional Data Processing
+
+**Calorie Extraction & Conversion**
+```javascript
+// Priority-based energy extraction
+const extractCaloriesPer100g = (food) => {
+  // 1. Prioritize kcal (kilocalories) - preferred unit
+  const kcalNutrient = food.foodNutrients.find(nutrient => 
+    nutrient.nutrientId === ENERGY_NUTRIENT_IDS.ENERGY_KCAL
+  );
+  if (kcalNutrient?.value > 0) {
+    return kcalNutrient.value;
+  }
+  
+  // 2. Fallback: Convert kJ (kilojoules) to kcal
+  const kjNutrient = food.foodNutrients.find(nutrient => 
+    nutrient.nutrientId === ENERGY_NUTRIENT_IDS.ENERGY_KJ
+  );
+  if (kjNutrient?.value > 0) {
+    return Math.round(kjNutrient.value / 4.184); // 1 kcal = 4.184 kJ
+  }
+  
+  // 3. No energy data available
+  return 0;
+};
+```
+
+**Macronutrient Extraction**
+The system extracts comprehensive macronutrient data using USDA nutrient IDs:
+
+```javascript
+// Nutrient ID mapping (USDA standard IDs)
+const MACRONUTRIENT_IDS = {
+  PROTEIN: 1003,                    // Protein (g)
+  TOTAL_FAT: 1004,                  // Total lipid (fat) (g)
+  CARBS: 1005,                      // Carbohydrate, by difference (g)
+  FIBER: 1079,                      // Fiber, total dietary (g)
+  SUGARS: 2000,                     // Sugars, total including NLEA (g)
+  SATURATED_FAT: 1258               // Fatty acids, total saturated (g)
+};
+
+// Extraction example
+const macronutrients = {
+  protein: getNutrientValue(1003),           // Required
+  total_fat: getNutrientValue(1004),         // Required  
+  carbohydrates: getNutrientValue(1005),     // Required
+  fiber: getNutrientValue(1079) || undefined,        // Optional
+  sugars: getNutrientValue(2000) || undefined,       // Optional
+  saturated_fat: getNutrientValue(1258) || undefined // Optional
+};
+```
+
+**Serving Size Intelligence**
+```javascript
+// Multi-source serving size calculation
+const calculateServingSize = (food) => {
+  // 1. Use provided serving size if available and in grams
+  if (food.servingSize > 0 && food.servingSizeUnit?.includes('g')) {
+    return food.servingSize;
+  }
+  
+  // 2. Convert other units using food measures
+  if (food.servingSize > 0 && food.foodMeasures?.length > 0) {
+    const measure = food.foodMeasures.find(m => 
+      m.measureUnitName.toLowerCase().includes(
+        food.servingSizeUnit?.toLowerCase()
+      )
+    );
+    if (measure) {
+      return measure.gramWeight * food.servingSize;
     }
-
-    USERS ||--o{ CALORIE_LOGS : "can have"
-    
-    CALORIE_LOGS {
-        serial id PK
-        int userId FK
-        varchar dishName
-        int servings
-        float caloriesPerServing
-        float totalCalories
-        varchar source
-        json ingredientBreakdown
-        timestamp createdAt
-    }
+  }
+  
+  // 3. Use first available food measure
+  if (food.foodMeasures?.length > 0) {
+    return food.foodMeasures[0].gramWeight;
+  }
+  
+  // 4. Default to 100g (standard nutrition label reference)
+  return 100;
+};
 ```
 
-**Key Points:**
-- Database uses **camelCase** internally, API responses use **snake_case**
-- JWT tokens include user data for stateless authentication
-- Passwords are hashed with bcrypt (12 salt rounds)
-- Future-ready schema with calorie logs table for analytics
+**Nutritional Calculations**
+```javascript
+// Precise calorie and macronutrient calculations
+const calculations = {
+  // Per serving calculations
+  caloriesPerServing: Math.round((caloriesPer100g * servingSizeGrams) / 100),
+  
+  // Macronutrients per serving (rounded to 1 decimal place)
+  proteinPerServing: Math.round((proteinPer100g * servingSizeGrams) / 100 * 10) / 10,
+  
+  // Total calculations for multiple servings
+  totalCalories: Math.round(caloriesPerServing * servings),
+  totalProtein: Math.round(proteinPerServing * servings * 10) / 10
+};
 
-### 🔐 Authentication Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as Express API
-    participant Auth as Auth Service
-    participant DB as PostgreSQL
-    participant JWT as JWT Service
-    participant Bcrypt as Password Hash
-
-    rect rgb(245, 245, 245)
-        Note over Client,Bcrypt: User Registration Flow
-        Client->>API: POST /auth/register
-        API->>Auth: Validate input data
-        Auth->>DB: Check if email exists
-        DB-->>Auth: User exists/not exists
-        
-        alt User already exists
-            Auth-->>API: 409 Conflict
-            API-->>Client: User already exists
-        else New user
-            Auth->>Bcrypt: Hash password (12 rounds)
-            Bcrypt-->>Auth: Password hash
-            Auth->>DB: Create new user
-            DB-->>Auth: User created
-            Auth->>JWT: Generate token
-            JWT-->>Auth: JWT token
-            Auth-->>API: User + token
-            API-->>Client: 201 Created with token
-        end
-    end
-
-    rect rgb(250, 250, 250)
-        Note over Client,Bcrypt: User Login Flow
-        Client->>API: POST /auth/login
-        API->>Auth: Validate credentials
-        Auth->>DB: Find user by email
-        DB-->>Auth: User data
-        
-        alt User not found
-            Auth-->>API: 422 Invalid credentials
-            API-->>Client: Invalid email/password
-        else User found
-            Auth->>Bcrypt: Compare password
-            Bcrypt-->>Auth: Password valid/invalid
-            
-            alt Password invalid
-                Auth-->>API: 422 Invalid credentials
-                API-->>Client: Invalid email/password
-            else Password valid
-                Auth->>JWT: Generate token
-                JWT-->>Auth: JWT token
-                Auth-->>API: User + token
-                API-->>Client: 200 Success with token
-            end
-        end
-    end
+// Example calculation:
+// Food: "Chicken breast" (23g protein/100g, serving size 140g)
+// Request: 2 servings
+// proteinPerServing = (23 * 140) / 100 = 32.2g
+// totalProtein = 32.2 * 2 = 64.4g
 ```
 
-### 🌱 USDA Integration Flow
+### Error Handling & Data Quality
 
-```mermaid
-flowchart TD
-    Start([Client Request: dish_name + servings]) --> Validate[Validate Input]
-    Validate --> Search[Search USDA API]
-    
-    Search --> USDAReq[POST /foods/search<br/>with dish_name]
-    USDAReq --> USDAResp[Receive foods array]
-    
-    USDAResp --> Match{Find Best Match}
-    
-    Match --> Exact[1. Exact Match<br/>Case-insensitive]
-    Match --> StartsWith[2. Starts With<br/>Description begins with query]
-    Match --> Contains[3. Contains<br/>Description includes query]
-    Match --> Score[4. Comprehensive Scoring]
-    
-    Exact --> Found{Food Found?}
-    StartsWith --> Found
-    Contains --> Found
-    Score --> ScoreCalc[Calculate Score:<br/>• Word matching<br/>• Data type priority<br/>• Calorie availability<br/>• Length penalty]
-    ScoreCalc --> Found
-    
-    Found -->|Yes| Extract[Extract Nutrition Data]
-    Found -->|No| Error[404 Not Found]
-    
-    Extract --> Calories[Get Calories per 100g<br/>kcal > kJ conversion]
-    Extract --> Macros[Get Macronutrients<br/>Protein, Fats, Carbs]
-    Extract --> Serving[Calculate Serving Size]
-    
-    Calories --> Calculate[Calculate Total Calories<br/>= calories_per_100g × serving_size × servings]
-    Macros --> Calculate
-    Serving --> Calculate
-    
-    Calculate --> Response[Return Formatted Response<br/>snake_case format]
-    Error --> Response
-    
-    Response --> End([Client Response])
-    
-    subgraph "Data Priority"
-        P1[Foundation Foods - Highest]
-        P2[SR Legacy - High]
-        P3[Survey FNDDS - Medium]
-        P4[Branded Foods - Low]
-    end
-    
-    subgraph "Scoring Algorithm"
-        S1[Word Match Score: 0-100]
-        S2[Data Type Boost: +10 to +20]
-        S3[Calorie Boost: +10]
-        S4[Length Penalty: -5]
-    end
-    
-    style Start fill:#e1f5fe
-    style Response fill:#e8f5e8
-    style Error fill:#ffebee
-    style Search fill:#f3e5f5
-    style Calculate fill:#fff3e0
+**API Error Management**
+```javascript
+// Comprehensive error handling
+try {
+  const response = await axios.post(USDA_API_URL, requestBody);
+} catch (error) {
+  if (error.response?.status === 400) {
+    throw new Error('Invalid search query for USDA API');
+  } else if (error.response?.status === 403) {
+    throw new Error('Invalid USDA API key');
+  } else if (error.code === 'ECONNABORTED') {
+    throw new Error('USDA API request timeout');
+  }
+  throw new Error('Failed to search foods from USDA API');
+}
 ```
 
-### 🚀 Deployment Architecture
-
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        Web[Web Browser]
-        Mobile[Mobile App]
-        API_Client[API Client]
-    end
-    
-    subgraph "CDN & Edge"
-        Vercel_Edge[Vercel Edge Network]
-        CDN[Global CDN]
-    end
-    
-    subgraph "Vercel Serverless"
-        Func[Serverless Functions]
-        Router[API Router]
-        Middleware[Middleware Stack]
-    end
-    
-    subgraph "Application Layer"
-        Auth_MW[Auth Middleware]
-        Rate_MW[Rate Limiter]
-        Val_MW[Validation]
-        Routes[Route Handlers]
-        Services[Business Logic]
-    end
-    
-    subgraph "External Services"
-        Redis_DB[(Upstash Redis<br/>Rate Limiting)]
-        Postgres_DB[(PostgreSQL<br/>User Data)]
-        USDA_Service[USDA FoodData<br/>Central API]
-    end
-    
-    subgraph "Monitoring & Logging"
-        Logs[Winston Logger]
-        Metrics[Vercel Analytics]
-        Errors[Error Tracking]
-    end
-    
-    Web --> Vercel_Edge
-    Mobile --> Vercel_Edge
-    API_Client --> Vercel_Edge
-    
-    Vercel_Edge --> CDN
-    CDN --> Func
-    
-    Func --> Router
-    Router --> Middleware
-    
-    Middleware --> Auth_MW
-    Middleware --> Rate_MW
-    Middleware --> Val_MW
-    
-    Auth_MW --> Routes
-    Rate_MW --> Routes
-    Val_MW --> Routes
-    
-    Routes --> Services
-    
-    Rate_MW <--> Redis_DB
-    Services <--> Postgres_DB
-    Services <--> USDA_Service
-    
-    Func --> Logs
-    Func --> Metrics
-    Func --> Errors
-    
-    style Web fill:#e1f5fe
-    style Mobile fill:#e1f5fe
-    style API_Client fill:#e1f5fe
-    style Vercel_Edge fill:#f3e5f5
-    style Func fill:#fff3e0
-    style Redis_DB fill:#ffebee
-    style Postgres_DB fill:#e8f5e8
-    style USDA_Service fill:#f1f8e9
+**Data Quality Validation**
+```javascript
+// Validate nutritional data availability
+const validateNutritionData = (food) => {
+  const calories = extractCaloriesPer100g(food);
+  
+  if (calories === 0) {
+    throw new Error(
+      `No calorie information available for "${dishName}". ` +
+      `The food "${food.description}" does not have energy data.`
+    );
+  }
+  
+  // Log data quality metrics
+  logger.debug('USDA food match found', {
+    query: dishName,
+    matchedFood: food.description,
+    fdcId: food.fdcId,
+    dataType: food.dataType,
+    hasCalories: calories > 0,
+    hasProtein: hasNutrient(food, MACRONUTRIENT_IDS.PROTEIN),
+    hasFats: hasNutrient(food, MACRONUTRIENT_IDS.TOTAL_FAT)
+  });
+};
 ```
 
-### 📁 Project Structure
+**User Experience Optimization**
+```javascript
+// Helpful error messages for better user experience
+const userFriendlyErrors = {
+  noFoodsFound: `No foods found for "${dishName}". Try a more specific or common food name.`,
+  noSuitableMatch: `No suitable match found for "${dishName}". Try a different search term.`,
+  noCalorieData: `No calorie information available for "${dishName}". The food "${bestMatch.description}" does not have energy data.`,
+  invalidInput: 'Dish name cannot be empty',
+  invalidServings: 'Servings must be a positive number'
+};
+```
 
-The backend follows a modular architecture with clear separation of concerns:
+**Search Success Examples**
+```javascript
+// High success rate queries
+const successfulQueries = [
+  // Simple foods (exact matches)
+  "apple" → "Apple, raw" (Foundation Foods),
+  "banana" → "Banana, raw" (Foundation Foods),
+  
+  // Common preparations (starts with matches)  
+  "grilled chicken" → "Grilled chicken breast" (SR Legacy),
+  "steamed broccoli" → "Steamed broccoli" (SR Legacy),
+  
+  // Complex dishes (contains matches)
+  "chicken biryani" → "Chicken biryani" (Survey FNDDS),
+  "pasta alfredo" → "Pasta alfredo with chicken" (Survey FNDDS),
+  
+  // Branded products (scoring algorithm)
+  "cheerios" → "CHEERIOS, General Mills" (Branded Foods),
+  "big mac" → "McDONALD'S, Big Mac" (Branded Foods)
+];
+```
 
-- **Routes**: API endpoint definitions and request handling
-- **Middleware**: Authentication, rate limiting, and validation
-- **Services**: Business logic and external API integration
-- **Database**: Schema definitions and database queries
-- **Types**: TypeScript interfaces and Zod validation schemas
-- **Utils**: Helper functions and utilities
+## Rate Limiting
 
-### 🔍 Key Architectural Decisions
+### Redis-Based Distributed Rate Limiting
 
-1. **Serverless-First Design**: Built for Vercel's serverless environment with optimized cold starts
-2. **Stateless Authentication**: JWT tokens eliminate server-side session storage
-3. **Redis Rate Limiting**: Persistent, distributed rate limiting across serverless functions
-4. **Input Validation**: Zod schemas ensure type safety at runtime
-5. **Structured Logging**: Winston provides comprehensive logging with metadata
-6. **Connection Pooling**: Optimized database connections for serverless architecture
-7. **Error Handling**: Consistent error responses with proper HTTP status codes
+The application uses Upstash Redis for persistent, distributed rate limiting that works seamlessly in serverless environments.
 
-## Contributing
+**Rate Limiting Tiers**
 
-1. Follow TypeScript best practices
-2. Use Zod for all input validation
-3. Implement proper error handling
-4. Add rate limiting to new endpoints
-5. Update this README for new features 
+| Endpoint Type | Limit | Window | Reasoning |
+|---------------|-------|--------|-----------|
+| **General** | 100 requests | 5 minutes | Standard API usage for non-intensive operations |
+| **Calorie Calculation** | 15 requests | 5 minutes | USDA API costs and processing intensity |
+| **Authentication** | 5 requests | 5 minutes | Brute force attack prevention |
 
-## Vercel Deployment
+**Technical Implementation**
+```javascript
+// Sliding window algorithm
+const limiter = new Ratelimit({
+  redis: upstashRedis,
+  limiter: Ratelimit.slidingWindow(limit, window),
+  analytics: true,
+  prefix: 'rl:endpoint-type'
+});
+```
 
-This backend is optimized for Vercel's serverless platform with comprehensive deployment configurations.
+**Features**
+- **Sliding Window**: Smooth rate limiting without burst allowances
+- **IP-Based**: Rate limits applied per client IP address
+- **Persistent**: Limits maintained across serverless function restarts
+- **Analytics**: Built-in monitoring and usage analytics
+- **Headers**: Rate limit information returned in response headers
 
-### Prerequisites
+**Rate Limit Headers**
+```http
+RateLimit-Limit: 100
+RateLimit-Remaining: 95
+RateLimit-Reset: 2024-01-01T12:05:00.000Z
+```
 
-Before deploying, ensure you have:
+**Benefits for Serverless**
+- **Stateless**: No local memory requirements
+- **Fast**: Sub-millisecond Redis response times
+- **Scalable**: Handles traffic spikes automatically
+- **Cost-Effective**: Pay-per-request pricing model
 
-1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
-2. **Database**: PostgreSQL database (Vercel Postgres, Neon, PlanetScale, or Railway)
-3. **Redis**: Upstash Redis account for rate limiting
-4. **USDA API Key**: From [USDA FoodData Central](https://fdc.nal.usda.gov/api-guide.html)
+## Development
 
-### Step 1: Database Setup
+### Development Environment Setup
 
-#### Option A: Vercel Postgres (Recommended)
+**Prerequisites Check**
+```bash
+# Verify Node.js version
+node --version  # Should be 18+
+
+# Verify pnpm installation
+pnpm --version
+
+# Verify PostgreSQL connection (if using local DB)
+psql --version
+```
+
+**Development Commands**
+
+| Command | Description | Usage |
+|---------|-------------|--------|
+| `pnpm dev` | Start development server with hot reload | Primary development command |
+| `pnpm dev:nodemon` | Alternative dev server using nodemon | If tsx watch has issues |
+| `pnpm build` | Compile TypeScript to JavaScript | Before production deployment |
+| `pnpm start` | Run production build | Testing production build locally |
+| `pnpm db:generate` | Generate new database migrations | After schema changes |
+| `pnpm db:migrate` | Apply pending migrations | Database updates |
+| `pnpm db:push` | Push schema directly to database | Development rapid prototyping |
+| `pnpm db:studio` | Open Drizzle Studio database browser | Database inspection |
+
+### Development Workflow
+
+**1. Feature Development**
+```bash
+# Start development server
+pnpm dev
+
+# Make code changes - server auto-reloads
+# Test endpoints using provided curl commands or Postman
+```
+
+**2. Database Changes**
+```bash
+# Modify schema in src/db/schema.ts
+# Generate migration
+pnpm db:generate
+
+# Apply migration
+pnpm db:migrate
+```
+
+**3. Testing Changes**
+```bash
+# Test health endpoint
+curl http://localhost:3001/health
+
+# Test authentication
+curl -X POST http://localhost:3001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"first_name":"Test","last_name":"User","email":"test@example.com","password":"testpass123"}'
+```
+
+### Code Quality Standards
+
+**TypeScript Configuration**
+- Strict mode enabled for maximum type safety
+- Path mapping for clean imports
+- Target ES2020 for Node.js 18+ compatibility
+
+**Code Formatting & Linting**
+```bash
+# Format code (if prettier configured)
+pnpm format
+
+# Lint code (if eslint configured)
+pnpm lint
+```
+
+**Testing Standards**
+- All new endpoints should have manual testing procedures
+- Database schema changes require migration testing
+- Environment variable changes require documentation updates
+
+### Debugging
+
+**Logging Levels**
+```bash
+# Set debug level for detailed logging
+NODE_ENV=development DEBUG=* pnpm dev
+```
+
+**Database Debugging**
+```bash
+# Open database browser
+pnpm db:studio
+
+# View database schema
+psql $DATABASE_URL -c "\d users"
+```
+
+**API Debugging**
+- Use server logs for request/response tracking
+- Enable debug logging for detailed information
+- Use correlation IDs to track request flows
+
+## Deployment
+
+### Vercel Deployment Guide
+
+**Prerequisites**
+- Vercel account ([sign up](https://vercel.com))
+- PostgreSQL database (cloud-hosted recommended)
+- Upstash Redis account
+- USDA API key
+
+**Step 1: Database Setup**
+
+**Option A: Vercel Postgres (Recommended)**
 ```bash
 # Install Vercel CLI
 npm i -g vercel
 
-# Navigate to your project
-cd backend
+# Create Vercel Postgres database
+vercel postgres create calorie-counter-db
 
-# Add Vercel Postgres
-vercel env add DATABASE_URL
-# Enter your PostgreSQL connection string when prompted
+# Get connection string
+vercel postgres connect calorie-counter-db
 ```
 
-#### Option B: External Database (Neon, PlanetScale, Railway)
-1. Create a PostgreSQL database on your preferred platform
-2. Copy the connection string
-3. You'll add this to Vercel environment variables later
+**Option B: External Database Providers**
+- **Neon** (recommended): Free tier, serverless-optimized
+- **Supabase**: PostgreSQL with additional features
+- **PlanetScale**: MySQL alternative with branching
+- **Railway**: Simple PostgreSQL hosting
 
-### Step 2: Redis Setup (Upstash)
-
-1. Go to [Upstash Console](https://console.upstash.com/)
-2. Create a new Redis database
-3. Copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
-
-### Step 3: Deploy to Vercel
-
-#### Method 1: Using Vercel CLI (Recommended)
-
+**Step 2: Redis Setup**
 ```bash
-# Login to Vercel
-vercel login
-
-# Deploy
-vercel
-
-# Follow the prompts:
-# - Set up and deploy? Y
-# - Which scope? (select your team/personal)
-# - Link to existing project? N
-# - What's your project's name? calorie-counter-backend
-# - In which directory is your code located? ./
+# 1. Go to console.upstash.com
+# 2. Create new Redis database
+# 3. Copy REST URL and token
 ```
 
-#### Method 2: Using GitHub Integration
+**Step 3: Environment Variables**
 
-1. Push your code to GitHub
-2. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-3. Click "New Project"
-4. Import your GitHub repository
-5. Configure build settings:
-   - **Framework Preset**: Other
+Set in Vercel dashboard or via CLI:
+```bash
+vercel env add DATABASE_URL
+vercel env add USDA_API_KEY
+vercel env add UPSTASH_REDIS_REST_URL
+vercel env add UPSTASH_REDIS_REST_TOKEN
+vercel env add JWT_SECRET
+vercel env add CORS_ORIGIN
+```
+
+**Step 4: Deploy**
+
+**Method 1: GitHub Integration (Recommended)**
+1. Push code to GitHub repository
+2. Connect repository in Vercel dashboard
+3. Configure build settings:
    - **Build Command**: `pnpm vercel-build`
    - **Output Directory**: `dist`
    - **Install Command**: `pnpm install`
 
-### Step 4: Configure Environment Variables
+**Method 2: Vercel CLI**
+```bash
+# Login to Vercel
+vercel login
 
-In your Vercel project settings, add these environment variables:
+# Deploy from project directory
+vercel
 
-#### Required Variables
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host/db` |
-| `USDA_API_KEY` | USDA FoodData Central API key | `abcd1234-5678-90ef-ghij-klmnopqrstuv` |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis URL | `https://xxx.upstash.io` |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token | `AYASxxx...` |
-| `JWT_SECRET` | JWT signing secret (32+ chars) | `super-secret-jwt-key-32-characters` |
+# Production deployment
+vercel --prod
+```
 
-#### Optional Variables
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `JWT_EXPIRES_IN` | Token expiration | `7d` |
-| `CORS_ORIGIN` | Frontend domain | `https://your-app.vercel.app` |
-
-### Step 5: Database Migration
-
-After successful deployment, run database migrations:
-
+**Step 5: Database Migration**
 ```bash
 # Pull environment variables locally
 vercel env pull .env.local
 
-# Run database migration
-pnpm db:push
-
-# Or if you have migrations
+# Run migration
 pnpm db:migrate
 ```
 
-### Step 6: Test Deployment
+### Production Configuration
 
-1. **Health Check**: Visit `https://your-app.vercel.app/health`
-2. **API Endpoints**: Test authentication and calorie endpoints
-3. **Logs**: Check Vercel function logs for any errors
-
-### Vercel Configuration
-
-The project includes `vercel.json` with optimized settings:
-- **Function timeout**: 15 seconds
-- **Build command**: TypeScript compilation
-- **Serverless function optimization**
-- **Route configuration**: All requests routed to main handler
-
-### Performance Optimizations
-
-#### Cold Start Optimization
-- **Separated app configuration**: App logic separated from server startup
-- **Optimized imports**: Minimal imports for faster initialization
-- **Database connection pooling**: Optimized for serverless environment
-
-#### Connection Pooling
-Database connections are optimized for serverless:
-```typescript
-max: env.NODE_ENV === 'production' ? 1 : 20,
-idleTimeoutMillis: 30000,
-connectionTimeoutMillis: 2000,
-allowExitOnIdle: true,
+**Vercel Optimization Settings**
+```json
+// vercel.json
+{
+  "version": 2,
+  "builds": [{
+    "src": "src/index.ts",
+    "use": "@vercel/node",
+    "config": {
+      "includeFiles": ["src/**", "index.html"]
+    }
+  }],
+  "routes": [{
+    "src": "/(.*)",
+    "dest": "/src/index.ts"
+  }]
+}
 ```
 
-#### Logging Optimization
-- **Console-only logging**: No file system writes in production
-- **Structured JSON logs**: Better debugging in Vercel dashboard
-- **Environment detection**: Automatically detects serverless environment
+**Performance Optimizations**
+- **Function Timeout**: 15 seconds maximum
+- **Cold Start**: Optimized imports and initialization
+- **Connection Pooling**: Single connection in production
+- **Memory Usage**: Minimal memory footprint
+
+**Monitoring Setup**
+- **Vercel Analytics**: Built-in performance monitoring
+- **Function Logs**: Available in Vercel dashboard
+- **Error Tracking**: Automatic error logging
+- **Performance Metrics**: Response times and cold start tracking
+
+### Post-Deployment Verification
+
+**Health Checks**
+```bash
+# Test deployment
+curl https://your-app.vercel.app/health
+
+# Test authentication
+curl -X POST https://your-app.vercel.app/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"first_name":"Test","last_name":"User","email":"test@example.com","password":"testpass123"}'
+
+# Test calorie endpoint (requires auth token)
+curl -X POST https://your-app.vercel.app/get-calories \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dish_name":"apple","servings":1}'
+```
+
+**Performance Testing**
+- Load testing with tools like Artillery or k6
+- Database connection testing under load
+- Rate limiting verification
+- Error handling validation
+
+## Testing
+
+### Manual Testing Procedures
+
+**Authentication Flow Testing**
+```bash
+# 1. Register new user
+curl -X POST http://localhost:3001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "John",
+    "last_name": "Doe", 
+    "email": "john.doe@example.com",
+    "password": "securepassword123"
+  }'
+
+# Expected: 201 Created with user object and token
+
+# 2. Login with same credentials
+curl -X POST http://localhost:3001/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "securepassword123"
+  }'
+
+# Expected: 200 OK with user object and token
+
+# 3. Test duplicate email registration
+curl -X POST http://localhost:3001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "password": "anotherpassword"
+  }'
+
+# Expected: 409 Conflict - User already exists
+```
+
+**Calorie Calculation Testing**
+```bash
+# Extract token from previous auth response
+TOKEN="your_jwt_token_here"
+
+# Test common foods
+curl -X POST http://localhost:3001/get-calories \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dish_name": "apple", "servings": 1}'
+
+# Test complex dishes
+curl -X POST http://localhost:3001/get-calories \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dish_name": "chicken biryani", "servings": 2}'
+
+# Test edge cases
+curl -X POST http://localhost:3001/get-calories \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dish_name": "nonexistent food item", "servings": 1}'
+
+# Expected: 404 Not Found for non-existent foods
+```
+
+**Rate Limiting Testing**
+```bash
+# Test rate limiting by making multiple rapid requests
+for i in {1..20}; do
+  curl -X POST http://localhost:3001/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"test@example.com","password":"wrong"}' &
+done
+wait
+
+# Expected: 429 Too Many Requests after 5 attempts
+```
+
+### Recommended Testing Foods
+
+**Basic Foods (High Success Rate)**
+- "apple" - Simple fruit
+- "banana" - Common fruit  
+- "chicken breast" - Basic protein
+- "white rice" - Staple grain
+- "salmon" - Fish protein
+
+**Complex Dishes (Moderate Success Rate)**
+- "chicken biryani" - Complex prepared dish
+- "pasta alfredo" - Sauce-based dish
+- "caesar salad" - Mixed salad
+- "beef stir fry" - Mixed vegetable dish
+- "chocolate chip cookies" - Baked goods
+
+**Edge Cases (Testing Error Handling)**
+- "xyz123nonexistent" - Non-existent food
+- "" - Empty string
+- "a" - Single character
+- Very long food names (50+ characters)
+
+### Error Response Testing
+
+**Validation Errors**
+```bash
+# Test missing required fields
+curl -X POST http://localhost:3001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"first_name": "John"}'
+
+# Expected: 400 Bad Request with field validation errors
+
+# Test invalid email format
+curl -X POST http://localhost:3001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "invalid-email",
+    "password": "password123"
+  }'
+
+# Expected: 400 Bad Request with email validation error
+```
+
+**Authentication Errors**
+```bash
+# Test missing authorization header
+curl -X POST http://localhost:3001/get-calories \
+  -H "Content-Type: application/json" \
+  -d '{"dish_name": "apple", "servings": 1}'
+
+# Expected: 401 Unauthorized
+
+# Test invalid token
+curl -X POST http://localhost:3001/get-calories \
+  -H "Authorization: Bearer invalid_token" \
+  -H "Content-Type: application/json" \
+  -d '{"dish_name": "apple", "servings": 1}'
+
+# Expected: 401 Unauthorized
+```
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues & Solutions
 
-1. **Database connection issues**:
-   - Verify `DATABASE_URL` is correct
-   - Ensure database is accessible from Vercel
-   - Check connection pooling settings
+**Database Connection Issues**
 
-2. **Redis connection issues**:
-   - Verify Upstash credentials
-   - Check Redis URL format
-   - Ensure Redis instance is active
-
-3. **CORS issues**:
-   - Update `CORS_ORIGIN` to match your frontend domain
-   - Check protocol (http vs https)
-
-4. **Vercel deployment issues**:
-   - Check build logs in Vercel dashboard
-   - Verify all environment variables are set
-   - Ensure database migrations are applied
-
-### Deployment Troubleshooting
-
-#### Common Issues
-
-**1. Database Connection Timeout**
-```
-Error: Connection timeout
-```
-**Solution**: 
-- Ensure your database allows connections from Vercel IPs
-- Check if connection pooling is properly configured
-- Verify `DATABASE_URL` format
-
-**2. Redis Connection Issues**
-```
-Error: Redis connection failed
-```
-**Solution**:
-- Verify `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
-- Check Upstash Redis dashboard for connection status
-- Ensure Redis database is not paused
-
-**3. CORS Errors**
-```
-Access to fetch blocked by CORS policy
-```
-**Solution**:
-- Set `CORS_ORIGIN` to your frontend domain
-- Ensure protocol matches (http vs https)
-
-**4. JWT Secret Issues**
-```
-Error: JWT secret must be at least 32 characters
-```
-**Solution**:
-- Generate a secure JWT secret: `openssl rand -hex 32`
-- Update `JWT_SECRET` environment variable
-
-**5. Build Failures**
-```
-Error: Module not found
-```
-**Solution**:
-- Ensure all dependencies are in `package.json`
-- Check TypeScript compilation errors
-- Verify file paths are correct
-
-### Monitoring and Maintenance
-
-#### Environment Variable Updates
+*Problem*: `Error: Connection timeout` or `ECONNREFUSED`
 ```bash
-# Using Vercel CLI
-vercel env add VARIABLE_NAME
+# Check database URL format
+echo $DATABASE_URL
+# Should be: postgresql://user:pass@host:port/database
 
-# Or update via dashboard: Settings → Environment Variables → Edit
+# Test connection manually
+psql $DATABASE_URL -c "SELECT 1;"
+
+# Solutions:
+1. Verify DATABASE_URL is correct
+2. Ensure database server is running
+3. Check firewall/network connectivity
+4. Verify connection pooling settings
 ```
 
-#### Database Monitoring
-- Check connection pool usage
-- Monitor query performance
-- Set up alerts for high latency
+*Problem*: `SSL connection required`
+```bash
+# Add SSL parameters to connection string
+DATABASE_URL="postgresql://user:pass@host:port/db?sslmode=require"
+```
 
-#### Redis Monitoring
-- Check request count and memory usage
-- Monitor rate limiting effectiveness
-- Review Redis dashboard for performance metrics
+**Redis Connection Issues**
 
-### Security Considerations
+*Problem*: `Redis connection failed` or rate limiting not working
+```bash
+# Test Redis connection
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+     -X GET "YOUR_REDIS_URL/ping"
 
-1. **JWT Secret**: Use a cryptographically secure secret (32+ characters)
-2. **Database**: Use connection string with strong password
-3. **CORS**: Set specific origin, avoid wildcards
-4. **Rate Limiting**: Configure appropriate limits for your use case
-5. **Environment Variables**: Never commit secrets to version control
+# Solutions:
+1. Verify UPSTASH_REDIS_REST_URL format
+2. Check UPSTASH_REDIS_REST_TOKEN validity
+3. Ensure Redis instance is active (not paused)
+4. Check Upstash dashboard for connection status
+```
 
-### Scaling and Cost Optimization
+**USDA API Issues**
 
-#### Automatic Scaling
-- Vercel functions scale automatically based on traffic
-- No configuration needed for horizontal scaling
-- Pay-per-execution pricing model
+*Problem*: `Invalid USDA API key` or `403 Forbidden`
+```bash
+# Test API key manually
+curl "https://api.nal.usda.gov/fdc/v1/foods/search?api_key=YOUR_KEY" \
+     -X POST \
+     -H "Content-Type: application/json" \
+     -d '{"query":"apple"}'
 
-#### Database Scaling
-For high traffic applications:
-- Consider read replicas for better performance
-- Implement connection pooling strategies
-- Use database clustering for large datasets
+# Solutions:
+1. Verify API key at https://fdc.nal.usda.gov/api-key-signup.html
+2. Check if key has expired
+3. Ensure no extra spaces in environment variable
+```
 
-#### Cost Management
-- **Vercel Hobby**: Free for personal projects
-- **Vercel Pro**: $20/month for commercial use
-- **Database costs**: Varies by provider (Neon, PlanetScale, Railway)
-- **Redis costs**: Upstash free tier (10K requests/month)
+**Authentication Issues**
 
-### Environment-Specific Notes
+*Problem*: `JWT secret must be at least 32 characters`
+```bash
+# Generate secure JWT secret
+openssl rand -hex 32
 
-**Development**: Uses local PostgreSQL and Redis
-**Production (Vercel)**: Uses cloud PostgreSQL and Upstash Redis
+# Or use Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+*Problem*: `Invalid token` or authentication failures
+```bash
+# Check token format in requests
+# Should be: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Verify JWT_SECRET matches between registration and login
+# Token expires based on JWT_EXPIRES_IN setting
+```
+
+**CORS Issues**
+
+*Problem*: `Access to fetch blocked by CORS policy`
+```bash
+# Solutions:
+1. Set CORS_ORIGIN to exact frontend URL
+2. Ensure protocol matches (http vs https)
+3. No trailing slashes in CORS_ORIGIN
+4. Check browser developer tools for actual origin
+```
+
+*Example CORS configuration:*
+```bash
+# Development
+CORS_ORIGIN=http://localhost:3000
+
+# Production
+CORS_ORIGIN=https://your-frontend.vercel.app
+```
+
+**Build & Deployment Issues**
+
+*Problem*: `Module not found` during build
+```bash
+# Solutions:
+1. Run pnpm install to ensure all dependencies
+2. Check TypeScript compilation: pnpm build
+3. Verify all imports use correct paths
+4. Check tsconfig.json configuration
+```
+
+*Problem*: Vercel deployment fails
+```bash
+# Check Vercel logs
+vercel logs
+
+# Common solutions:
+1. Verify vercel.json configuration
+2. Ensure all environment variables are set
+3. Check build command: pnpm vercel-build
+4. Verify Node.js version compatibility
+```
+
+### Performance Issues
+
+**Slow Response Times**
+
+*Database Query Optimization*
+```bash
+# Enable query logging in development
+DEBUG=drizzle:query pnpm dev
+
+# Check for missing indexes
+# Review query patterns in logs
+```
+
+*USDA API Timeouts*
+```bash
+# Current timeout: 10 seconds
+# If timeouts are frequent:
+1. Check USDA API status
+2. Consider implementing retry logic
+3. Monitor network connectivity
+```
+
+**Memory Issues**
+
+*High Memory Usage*
+```bash
+# Monitor memory usage
+node --expose-gc --max-old-space-size=512 dist/index.js
+
+# Solutions:
+1. Review large object creation
+2. Ensure proper cleanup in async operations
+3. Monitor connection pool usage
+```
+
+### Environment-Specific Issues
+
+**Development Environment**
+```bash
+# Enable detailed logging
+NODE_ENV=development DEBUG=* pnpm dev
+
+# Common issues:
+1. Port already in use: Change PORT in .env
+2. Hot reload not working: Try pnpm dev:nodemon
+3. Database changes not reflected: Run pnpm db:push
+```
+
+**Production Environment**
+```bash
+# Check production logs
+vercel logs --follow
+
+# Monitor function performance
+# Review cold start times
+# Check error rates in Vercel dashboard
+```
+
+### Monitoring & Maintenance
+
+**Health Monitoring**
+```bash
+# Set up health check monitoring
+curl -f https://your-app.vercel.app/health || exit 1
+
+# Monitor key metrics:
+1. Response times
+2. Error rates  
+3. Database connection pool usage
+4. Redis hit rates
+5. USDA API response times
+```
+
+**Log Analysis**
+```bash
+# Review error patterns
+grep "ERROR" logs/combined.log | tail -20
+
+# Monitor authentication failures
+grep "Authentication failed" logs/combined.log
+
+# Track performance bottlenecks
+grep "duration" logs/combined.log | sort -k4 -nr | head -10
+```
+
+**Security Monitoring**
+```bash
+# Monitor rate limiting hits
+grep "Rate limit exceeded" logs/combined.log
+
+# Check for suspicious activity
+grep "429\|401\|403" logs/combined.log | tail -20
+
+# Review IP patterns
+grep "ip:" logs/combined.log | awk '{print $NF}' | sort | uniq -c | sort -nr
+```
+
+## Contributing
+
+### Development Guidelines
+
+**Code Standards**
+- Follow TypeScript best practices with strict mode enabled
+- Use Zod for all input validation schemas
+- Implement comprehensive error handling with proper HTTP status codes
+- Add rate limiting to all new public endpoints
+- Include structured logging for all major operations
+
+**Database Changes**
+```bash
+# 1. Modify schema in src/db/schema.ts
+# 2. Generate migration
+pnpm db:generate
+
+# 3. Test migration on development database
+pnpm db:migrate
+
+# 4. Update types and validation schemas
+# 5. Test all affected endpoints
+```
+
+**New Feature Development**
+1. **Planning**: Document the feature requirements and API design
+2. **Implementation**: Follow existing patterns for routes, middleware, and services
+3. **Validation**: Add Zod schemas for all new inputs
+4. **Testing**: Manual testing with curl commands
+5. **Documentation**: Update README with new endpoints and features
+
+**Security Considerations**
+- All new endpoints must include appropriate rate limiting
+- Input validation is required for all user-provided data
+- Authentication required for any sensitive operations
+- Error messages should not leak internal system information
+
+### Pull Request Guidelines
+
+**Before Submitting**
+```bash
+# 1. Ensure code builds successfully
+pnpm build
+
+# 2. Test all functionality
+pnpm dev
+# Run manual tests for your changes
+
+# 3. Update documentation
+# Update README.md for new features
+# Update API documentation for endpoint changes
+```
+
+**PR Description Should Include**
+- Clear description of changes made
+- Rationale for the changes
+- Testing procedures followed
+- Any breaking changes or migration requirements
+- Updated environment variables (if any)
+
+### Project Roadmap
+
+**Planned Enhancements**
+1. **User Calorie History**: Track user's calorie calculation history
+2. **Favorite Foods**: Save frequently searched foods
+3. **Nutritional Goals**: Daily calorie and macro targets
+4. **Advanced Analytics**: Weekly/monthly nutrition summaries
+5. **Food Caching**: Cache USDA responses for performance
+6. **Batch Processing**: Multiple food calculations in single request
+7. **Recipe Analysis**: Break down complex recipes into ingredients
+
+**Technical Improvements**
+1. **Automated Testing**: Unit and integration test suite
+2. **API Versioning**: Support for multiple API versions
+3. **Enhanced Caching**: Redis-based response caching
+4. **Monitoring**: Advanced metrics and alerting
+5. **Documentation**: OpenAPI/Swagger documentation
+6. **Performance**: Response time optimization
+7. **Security**: Enhanced security scanning and monitoring
 
 ## License
 
-MIT License 
+MIT License
+
+Copyright (c) 2024 Calorie Counter Backend
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+**🚀 Ready to deploy?** Check out the [Deployment](#deployment) section for step-by-step Vercel deployment instructions.
+
+**❓ Need help?** Review the [Troubleshooting](#troubleshooting) section for common issues and solutions.
+
+**🔧 Want to contribute?** See the [Contributing](#contributing) guidelines for development standards and pull request requirements. 

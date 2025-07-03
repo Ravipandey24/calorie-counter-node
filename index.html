@@ -86,6 +86,45 @@
         margin-bottom: 30px;
         box-shadow: 0 20px 40px rgba(111, 78, 55, 0.2);
         border: 1px solid rgba(212, 165, 116, 0.3);
+        position: relative;
+      }
+
+      .github-link {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #8b5a3c, #6f4e37);
+        color: #fff8f0;
+        padding: 12px 18px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+        border: 1px solid rgba(212, 165, 116, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 10;
+      }
+
+      .github-link:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(111, 78, 55, 0.4);
+        background: linear-gradient(135deg, #6f4e37, #5a3e2f);
+        border-color: rgba(212, 165, 116, 0.4);
+      }
+
+      .github-icon {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        transition: transform 0.3s ease;
+      }
+
+      .github-link:hover .github-icon {
+        transform: rotate(12deg) scale(1.1);
       }
 
       .header h1 {
@@ -202,17 +241,56 @@
         padding: 20px;
         border-radius: 12px;
         overflow-x: auto;
+        overflow-y: auto;
+        max-height: 400px;
         margin: 15px 0;
         font-family: "JetBrains Mono", "Fira Code", "Monaco", "Consolas",
           monospace;
         font-size: 0.85rem;
-        line-height: 1.5;
+        line-height: 1.6;
         border: 1px solid #6f4e37;
         box-shadow: 0 4px 16px rgba(45, 24, 16, 0.4);
         position: relative;
         white-space: pre-wrap;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        scrollbar-width: thin;
+        scrollbar-color: #d4a574 #2d1810;
+        transition: all 0.3s ease;
+      }
+
+      .code-block:hover {
+        max-height: 500px;
+        box-shadow: 0 6px 24px rgba(45, 24, 16, 0.6);
+        border-color: #d4a574;
+        transform: scale(1.01);
+      }
+
+      .code-block::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      .code-block::-webkit-scrollbar-track {
+        background: #2d1810;
+        border-radius: 6px;
+        border: 1px solid #1a0f0a;
+      }
+
+      .code-block::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #d4a574, #b8956a);
+        border-radius: 6px;
+        border: 1px solid #8b5a3c;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      }
+
+      .code-block::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #b8956a, #8b5a3c);
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .code-block::-webkit-scrollbar-corner {
+        background: #2d1810;
       }
 
       .code-block::before {
@@ -276,17 +354,56 @@
         padding: 20px;
         border-radius: 12px;
         overflow-x: auto;
+        overflow-y: auto;
+        max-height: 450px;
         margin: 15px 0;
         font-family: "JetBrains Mono", "Fira Code", "Monaco", "Consolas",
           monospace;
         font-size: 0.85rem;
-        line-height: 1.6;
+        line-height: 1.8;
         border: 1px solid #6f4e37;
         box-shadow: 0 4px 16px rgba(45, 24, 16, 0.4);
         position: relative;
         white-space: pre-wrap;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        scrollbar-width: thin;
+        scrollbar-color: #d4a574 #2d1810;
+        transition: all 0.3s ease;
+      }
+
+      .folder-structure:hover {
+        max-height: 600px;
+        box-shadow: 0 6px 24px rgba(45, 24, 16, 0.6);
+        border-color: #d4a574;
+        transform: scale(1.01);
+      }
+
+      .folder-structure::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      .folder-structure::-webkit-scrollbar-track {
+        background: #2d1810;
+        border-radius: 6px;
+        border: 1px solid #1a0f0a;
+      }
+
+      .folder-structure::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #d4a574, #b8956a);
+        border-radius: 6px;
+        border: 1px solid #8b5a3c;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      }
+
+      .folder-structure::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #b8956a, #8b5a3c);
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .folder-structure::-webkit-scrollbar-corner {
+        background: #2d1810;
       }
 
       .folder-structure::before {
@@ -493,6 +610,23 @@
         }
       }
 
+      /* Scroll progress indicator for code blocks */
+      .code-block, .folder-structure {
+        position: relative;
+      }
+      
+      .code-block::after, .folder-structure::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #d4a574, #8b5a3c);
+        border-radius: 0 0 12px 12px;
+        width: 0%;
+        transition: width 0.1s ease;
+      }
+
       /* Enhanced button hover effects */
       .tech-item,
       .badge {
@@ -526,6 +660,19 @@
           font-size: 2rem;
         }
 
+        .github-link {
+          position: static;
+          display: inline-flex;
+          margin-bottom: 20px;
+          padding: 10px 16px;
+          font-size: 0.85rem;
+        }
+
+        .github-icon {
+          width: 18px;
+          height: 18px;
+        }
+
         .grid {
           grid-template-columns: 1fr;
         }
@@ -549,6 +696,12 @@
     <div class="container">
       <!-- Header -->
       <div class="header">
+        <a href="https://github.com/Ravipandey24/calorie-counter-node" target="_blank" rel="noopener noreferrer" class="github-link">
+          <svg class="github-icon" viewBox="0 0 24 24">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          <span>View on GitHub</span>
+        </a>
         <h1>☕ Calorie Counter API</h1>
         <p>
           A robust Express TypeScript backend service that integrates with the
@@ -973,9 +1126,15 @@
           <strong>Quick Start:</strong>
           <a
             href="#"
-            onclick="navigator.clipboard.writeText('git clone [your-repo] && cd backend && pnpm install && pnpm dev')"
+            onclick="navigator.clipboard.writeText('git clone https://github.com/Ravipandey24/calorie-counter-node.git && cd calorie-counter-node/backend && pnpm install && pnpm dev')"
             >Copy setup commands</a
           >
+        </p>
+        <p>
+          <strong>Repository:</strong> 
+          <a href="https://github.com/Ravipandey24/calorie-counter-node" target="_blank" rel="noopener noreferrer">
+            GitHub - Calorie Counter Node
+          </a>
         </p>
         <p>
           <strong>Development:</strong> <code>pnpm dev</code> |
@@ -1011,6 +1170,30 @@
         codeBlocks.forEach((block) => {
           block.style.cursor = "pointer";
           block.title = "Click to copy - as smooth as your morning brew ☕";
+          
+          // Add copy icon indicator
+          const copyIcon = document.createElement('div');
+          copyIcon.innerHTML = '📋';
+          copyIcon.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2rem;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+          `;
+          block.appendChild(copyIcon);
+          
+          block.addEventListener("mouseenter", () => {
+            copyIcon.style.opacity = '1';
+          });
+          
+          block.addEventListener("mouseleave", () => {
+            copyIcon.style.opacity = '0.6';
+          });
+          
           block.addEventListener("click", function () {
             navigator.clipboard.writeText(this.textContent.trim()).then(() => {
               // Coffee-themed success feedback
@@ -1018,6 +1201,7 @@
               this.style.background =
                 "linear-gradient(135deg, #8b5a3c, #d4a574)";
               this.style.border = "2px solid #d4a574";
+              copyIcon.innerHTML = '✅';
 
               // Create a temporary toast notification
               const toast = document.createElement("div");
@@ -1041,6 +1225,7 @@
               setTimeout(() => {
                 this.style.background = originalBackground;
                 this.style.border = "1px solid #6f4e37";
+                copyIcon.innerHTML = '📋';
                 toast.remove();
               }, 2000);
             });
@@ -1094,6 +1279,65 @@
         // Initialize coffee-themed features
         addCoffeeSteam();
         createFloatingBeans();
+
+        // Add scroll indicator for code blocks
+        const addScrollIndicators = () => {
+          const scrollableElements = document.querySelectorAll('.code-block, .folder-structure');
+          
+          scrollableElements.forEach(element => {
+            // Check if content is scrollable
+            if (element.scrollHeight > element.clientHeight) {
+              // Add scroll indicator
+              const indicator = document.createElement('div');
+              indicator.className = 'scroll-indicator';
+              indicator.innerHTML = '☕ Scroll for more content ↓';
+              indicator.style.cssText = `
+                position: absolute;
+                bottom: 5px;
+                right: 10px;
+                background: rgba(212, 165, 116, 0.9);
+                color: #2d1810;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                pointer-events: none;
+                opacity: 0.8;
+                transition: opacity 0.3s ease;
+                font-family: 'Manrope', sans-serif;
+                z-index: 10;
+              `;
+              element.appendChild(indicator);
+              
+              // Update scroll progress indicator
+              const updateScrollProgress = () => {
+                const scrollPercentage = (element.scrollTop / (element.scrollHeight - element.clientHeight)) * 100;
+                element.style.setProperty('--scroll-progress', `${scrollPercentage}%`);
+                
+                const isAtBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 5;
+                indicator.style.opacity = isAtBottom ? '0' : '0.8';
+              };
+              
+              // Create progress bar style
+              element.style.setProperty('--scroll-progress', '0%');
+              const style = document.createElement('style');
+              style.textContent = `
+                .code-block::after, .folder-structure::after {
+                  width: var(--scroll-progress, 0%);
+                }
+              `;
+              document.head.appendChild(style);
+              
+              element.addEventListener('scroll', updateScrollProgress);
+              updateScrollProgress(); // Initial call
+            }
+          });
+        };
+
+        // Initialize coffee-themed features
+        addCoffeeSteam();
+        createFloatingBeans();
+        addScrollIndicators();
 
         // Add coffee-themed loading states for buttons
         const badges = document.querySelectorAll(".badge");
