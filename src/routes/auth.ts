@@ -8,6 +8,7 @@ import { registerSchema, loginSchema } from '../types';
 import { authLimiterMiddleware } from '../middleware/rateLimiter';
 import { env } from '../env';
 import logger from '../utils/logger';
+import { formatValidationErrors } from '../utils/validation';
 
 const router: IRouter = Router();
 
@@ -16,12 +17,8 @@ router.post('/register', authLimiterMiddleware, async (req: Request, res: Respon
     const validationResult = registerSchema.safeParse(req.body);
     
     if (!validationResult.success) {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: 'Invalid input data',
-        details: validationResult.error.flatten().fieldErrors,
-        status_code: 400,
-      });
+      const errorResponse = formatValidationErrors(validationResult.error);
+      return res.status(errorResponse.status_code).json(errorResponse);
     }
     
     const { first_name, last_name, email, password } = validationResult.data;
@@ -97,12 +94,8 @@ router.post('/login', authLimiterMiddleware, async (req: Request, res: Response)
     const validationResult = loginSchema.safeParse(req.body);
     
     if (!validationResult.success) {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: 'Invalid input data',
-        details: validationResult.error.flatten().fieldErrors,
-        status_code: 400,
-      });
+      const errorResponse = formatValidationErrors(validationResult.error);
+      return res.status(errorResponse.status_code).json(errorResponse);
     }
     
     const { email, password } = validationResult.data;

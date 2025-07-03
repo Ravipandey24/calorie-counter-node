@@ -35,10 +35,34 @@ export interface CalorieResponse {
   servings: number;
   calories_per_serving: number;
   total_calories: number;
+  macronutrients_per_serving?: {
+    protein: number;        // grams
+    total_fat: number;      // grams
+    carbohydrates: number;  // grams
+    fiber?: number;         // grams
+    sugars?: number;        // grams
+    saturated_fat?: number; // grams
+  };
+  total_macronutrients?: {
+    protein: number;        // grams
+    total_fat: number;      // grams
+    carbohydrates: number;  // grams
+    fiber?: number;         // grams
+    sugars?: number;        // grams
+    saturated_fat?: number; // grams
+  };
   source: string;
   ingredient_breakdown?: Array<{
     name: string;
     calories_per_100g: number;
+    macronutrients_per_100g?: {
+      protein: number;        // grams
+      total_fat: number;      // grams
+      carbohydrates: number;  // grams
+      fiber?: number;         // grams
+      sugars?: number;        // grams
+      saturated_fat?: number; // grams
+    };
     serving_size?: string;
     data_type?: string;
     fdc_id?: number;
@@ -153,10 +177,19 @@ export interface USDASearchResponse {
   };
 }
 
-// Nutrient IDs for energy (calories)
+// Nutrient IDs for energy (calories) and macronutrients
 export const ENERGY_NUTRIENT_IDS = {
   ENERGY_KCAL: 1008, // Energy (kcal)
   ENERGY_KJ: 1062,   // Energy (kJ)  
+} as const;
+
+export const MACRONUTRIENT_IDS = {
+  PROTEIN: 1003,      // Protein (g)
+  TOTAL_FAT: 1004,    // Total lipid (fat) (g)
+  CARBS: 1005,        // Carbohydrate, by difference (g)
+  FIBER: 1079,        // Fiber, total dietary (g)
+  SUGARS: 2000,       // Sugars, total including NLEA (g)
+  SATURATED_FAT: 1258, // Fatty acids, total saturated (g)
 } as const;
 
 // Export type inference

@@ -13,21 +13,21 @@ const redis = new Redis({
 // Upstash native rate limiters (recommended for serverless)
 export const upstashGeneralLimiter = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(100, '15 m'), // 100 requests per 15 minutes
+  limiter: Ratelimit.slidingWindow(100, '5 m'), // 100 requests per 5 minutes
   analytics: true,
   prefix: 'rl:general',
 });
 
 export const upstashStrictLimiter = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(15, '15 m'), // 15 requests per 15 minutes
+  limiter: Ratelimit.slidingWindow(15, '5 m'), // 15 requests per 5 minutes
   analytics: true,
   prefix: 'rl:strict',
 });
 
 export const upstashAuthLimiter = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(5, '15 m'), // 5 requests per 15 minutes
+  limiter: Ratelimit.slidingWindow(5, '5 m'), // 5 requests per 5 minutes
   analytics: true,
   prefix: 'rl:auth',
 });

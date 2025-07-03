@@ -2,6 +2,37 @@
 
 A robust Express TypeScript backend service that integrates with the USDA FoodData Central API to provide calorie calculation functionality for various dishes.
 
+## 📋 Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+  - [Authentication](#authentication)
+  - [Calorie Calculation](#calorie-calculation)
+  - [Health Check](#health-check)
+- [Database Schema](#database-schema)
+- [Security Features](#security-features)
+- [Logging](#logging)
+- [Development Commands](#development-commands)
+- [Testing the API](#testing-the-api)
+- [Error Handling](#error-handling)
+- [Architecture](#architecture)
+  - [🏗️ System Overview](#️-system-overview)
+  - [🔄 API Request Flow](#-api-request-flow)
+  - [🗄️ Database Schema](#️-database-schema)
+  - [🔐 Authentication Flow](#-authentication-flow)
+  - [🌱 USDA Integration Flow](#-usda-integration-flow)
+  - [🚀 Deployment Architecture](#-deployment-architecture)
+  - [📁 Project Structure](#-project-structure)
+  - [🔍 Key Architectural Decisions](#-key-architectural-decisions)
+- [Contributing](#contributing)
+- [Vercel Deployment](#vercel-deployment)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
 ## Features
 
 - 🔐 **User Authentication** - JWT-based authentication with secure password hashing
@@ -150,14 +181,48 @@ Content-Type: application/json
   "servings": 2,
   "calories_per_serving": 280,
   "total_calories": 560,
+  "macronutrients_per_serving": {
+    "protein": 24.5,
+    "total_fat": 8.2,
+    "carbohydrates": 35.8,
+    "fiber": 2.1,
+    "sugars": 4.3,
+    "saturated_fat": 2.1
+  },
+  "total_macronutrients": {
+    "protein": 49.0,
+    "total_fat": 16.4,
+    "carbohydrates": 71.6,
+    "fiber": 4.2,
+    "sugars": 8.6,
+    "saturated_fat": 4.2
+  },
   "source": "USDA FoodData Central",
   "ingredient_breakdown": [
     {
       "name": "Chicken biryani",
       "calories_per_100g": 180,
-      "serving_size": "100g"
+      "macronutrients_per_100g": {
+        "protein": 15.7,
+        "total_fat": 5.2,
+        "carbohydrates": 22.9,
+        "fiber": 1.4,
+        "sugars": 2.8,
+        "saturated_fat": 1.3
+      },
+      "serving_size": "156g",
+      "data_type": "Survey (FNDDS)",
+      "fdc_id": 167512,
+      "brand": null,
+      "category": "Mixed Dishes"
     }
-  ]
+  ],
+  "matched_food": {
+    "name": "Chicken biryani",
+    "fdc_id": 167512,
+    "data_type": "Survey (FNDDS)",
+    "published_date": "2019-04-01"
+  }
 }
 ```
 
@@ -182,9 +247,9 @@ GET /health
 ## Security Features
 
 - **Rate Limiting (Upstash Redis)**: 
-  - General endpoints: 100 req/15min
-  - Calorie endpoints: 15 req/15min
-  - Auth endpoints: 5 req/15min
+  - General endpoints: 100 req/5min
+  - Calorie endpoints: 15 req/5min
+  - Auth endpoints: 5 req/5min
   - Persistent across server restarts
   - Serverless-compatible
 - **Password Security**: Bcrypt with 12 salt rounds
@@ -262,14 +327,361 @@ Common error codes:
 
 ## Architecture
 
-The backend follows a modular architecture:
+The Calorie Counter Backend follows a modern, serverless-first architecture designed for scalability, security, and maintainability. Below are detailed architectural diagrams explaining the system design.
 
-- **Routes**: API endpoint definitions
-- **Middleware**: Auth, rate limiting, validation
-- **Services**: Business logic (USDA integration)
-- **Database**: Schema definitions and queries
-- **Types**: TypeScript interfaces and Zod schemas
-- **Utils**: Helper functions
+### 🏗️ System Overview
+
+```mermaid
+graph TB
+    Client[Frontend Application] --> LB[Load Balancer/CDN]
+    LB --> API[Express.js API Server]
+    
+    API --> Auth[JWT Authentication]
+    API --> RL[Rate Limiter]
+    API --> Val[Zod Validation]
+    
+    Auth --> JWT[JWT Token Service]
+    RL --> Redis[(Upstash Redis)]
+    
+    API --> AuthRoute[Auth Routes]
+    API --> CalRoute[Calorie Routes]
+    API --> Health[Health Check]
+    
+    AuthRoute --> AuthServ[Auth Service]
+    CalRoute --> CalServ[Calorie Service]
+    CalServ --> USDA[USDA API Service]
+    
+    AuthServ --> DB[(PostgreSQL)]
+    USDA --> USDAApi[USDA FoodData Central API]
+    
+    DB --> Drizzle[Drizzle ORM]
+    
+    API --> Logger[Winston Logger]
+    Logger --> Logs[Log Files]
+    
+    subgraph "Security Layer"
+        Auth
+        RL
+        Val
+        Helmet[Helmet.js Security]
+    end
+    
+    subgraph "External Services"
+        Redis
+        USDAApi
+        DB
+    end
+    
+    subgraph "Deployment"
+        Vercel[Vercel Serverless]
+        API --> Vercel
+    end
+    
+    style Client fill:#e1f5fe
+    style API fill:#f3e5f5
+    style DB fill:#e8f5e8
+    style Redis fill:#fff3e0
+    style USDAApi fill:#f1f8e9
+    style Vercel fill:#fce4ec
+```
+
+### 🔄 API Request Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as Express API
+    participant Auth as JWT Middleware
+    participant RL as Rate Limiter
+    participant Val as Zod Validator
+    participant Service as Business Logic
+    participant DB as PostgreSQL
+    participant USDA as USDA API
+
+    Client->>API: POST /get-calories
+    API->>RL: Check rate limit
+    RL->>Redis: Validate IP limit
+    Redis-->>RL: Allow/Deny
+    RL-->>API: Rate limit result
+    
+    alt Rate limit exceeded
+        API-->>Client: 429 Too Many Requests
+    else Rate limit OK
+        API->>Auth: Verify JWT token
+        Auth-->>API: User authenticated
+        
+        API->>Val: Validate request body
+        Val-->>API: Validation result
+        
+        alt Validation failed
+            API-->>Client: 400 Bad Request
+        else Validation OK
+            API->>Service: Process calorie request
+            Service->>USDA: Search food data
+            USDA-->>Service: Food nutrition data
+            Service->>Service: Calculate calories
+            Service-->>API: Calorie results
+            API-->>Client: 200 Success with data
+        end
+    end
+
+    Note over Client,USDA: All responses include structured logging
+```
+
+### 🗄️ Database Schema
+
+```mermaid
+erDiagram
+    USERS {
+        serial id PK
+        varchar firstName
+        varchar lastName
+        varchar email UK
+        text passwordHash
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    USERS ||--o{ CALORIE_LOGS : "can have"
+    
+    CALORIE_LOGS {
+        serial id PK
+        int userId FK
+        varchar dishName
+        int servings
+        float caloriesPerServing
+        float totalCalories
+        varchar source
+        json ingredientBreakdown
+        timestamp createdAt
+    }
+```
+
+**Key Points:**
+- Database uses **camelCase** internally, API responses use **snake_case**
+- JWT tokens include user data for stateless authentication
+- Passwords are hashed with bcrypt (12 salt rounds)
+- Future-ready schema with calorie logs table for analytics
+
+### 🔐 Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as Express API
+    participant Auth as Auth Service
+    participant DB as PostgreSQL
+    participant JWT as JWT Service
+    participant Bcrypt as Password Hash
+
+    rect rgb(245, 245, 245)
+        Note over Client,Bcrypt: User Registration Flow
+        Client->>API: POST /auth/register
+        API->>Auth: Validate input data
+        Auth->>DB: Check if email exists
+        DB-->>Auth: User exists/not exists
+        
+        alt User already exists
+            Auth-->>API: 409 Conflict
+            API-->>Client: User already exists
+        else New user
+            Auth->>Bcrypt: Hash password (12 rounds)
+            Bcrypt-->>Auth: Password hash
+            Auth->>DB: Create new user
+            DB-->>Auth: User created
+            Auth->>JWT: Generate token
+            JWT-->>Auth: JWT token
+            Auth-->>API: User + token
+            API-->>Client: 201 Created with token
+        end
+    end
+
+    rect rgb(250, 250, 250)
+        Note over Client,Bcrypt: User Login Flow
+        Client->>API: POST /auth/login
+        API->>Auth: Validate credentials
+        Auth->>DB: Find user by email
+        DB-->>Auth: User data
+        
+        alt User not found
+            Auth-->>API: 422 Invalid credentials
+            API-->>Client: Invalid email/password
+        else User found
+            Auth->>Bcrypt: Compare password
+            Bcrypt-->>Auth: Password valid/invalid
+            
+            alt Password invalid
+                Auth-->>API: 422 Invalid credentials
+                API-->>Client: Invalid email/password
+            else Password valid
+                Auth->>JWT: Generate token
+                JWT-->>Auth: JWT token
+                Auth-->>API: User + token
+                API-->>Client: 200 Success with token
+            end
+        end
+    end
+```
+
+### 🌱 USDA Integration Flow
+
+```mermaid
+flowchart TD
+    Start([Client Request: dish_name + servings]) --> Validate[Validate Input]
+    Validate --> Search[Search USDA API]
+    
+    Search --> USDAReq[POST /foods/search<br/>with dish_name]
+    USDAReq --> USDAResp[Receive foods array]
+    
+    USDAResp --> Match{Find Best Match}
+    
+    Match --> Exact[1. Exact Match<br/>Case-insensitive]
+    Match --> StartsWith[2. Starts With<br/>Description begins with query]
+    Match --> Contains[3. Contains<br/>Description includes query]
+    Match --> Score[4. Comprehensive Scoring]
+    
+    Exact --> Found{Food Found?}
+    StartsWith --> Found
+    Contains --> Found
+    Score --> ScoreCalc[Calculate Score:<br/>• Word matching<br/>• Data type priority<br/>• Calorie availability<br/>• Length penalty]
+    ScoreCalc --> Found
+    
+    Found -->|Yes| Extract[Extract Nutrition Data]
+    Found -->|No| Error[404 Not Found]
+    
+    Extract --> Calories[Get Calories per 100g<br/>kcal > kJ conversion]
+    Extract --> Macros[Get Macronutrients<br/>Protein, Fats, Carbs]
+    Extract --> Serving[Calculate Serving Size]
+    
+    Calories --> Calculate[Calculate Total Calories<br/>= calories_per_100g × serving_size × servings]
+    Macros --> Calculate
+    Serving --> Calculate
+    
+    Calculate --> Response[Return Formatted Response<br/>snake_case format]
+    Error --> Response
+    
+    Response --> End([Client Response])
+    
+    subgraph "Data Priority"
+        P1[Foundation Foods - Highest]
+        P2[SR Legacy - High]
+        P3[Survey FNDDS - Medium]
+        P4[Branded Foods - Low]
+    end
+    
+    subgraph "Scoring Algorithm"
+        S1[Word Match Score: 0-100]
+        S2[Data Type Boost: +10 to +20]
+        S3[Calorie Boost: +10]
+        S4[Length Penalty: -5]
+    end
+    
+    style Start fill:#e1f5fe
+    style Response fill:#e8f5e8
+    style Error fill:#ffebee
+    style Search fill:#f3e5f5
+    style Calculate fill:#fff3e0
+```
+
+### 🚀 Deployment Architecture
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        Web[Web Browser]
+        Mobile[Mobile App]
+        API_Client[API Client]
+    end
+    
+    subgraph "CDN & Edge"
+        Vercel_Edge[Vercel Edge Network]
+        CDN[Global CDN]
+    end
+    
+    subgraph "Vercel Serverless"
+        Func[Serverless Functions]
+        Router[API Router]
+        Middleware[Middleware Stack]
+    end
+    
+    subgraph "Application Layer"
+        Auth_MW[Auth Middleware]
+        Rate_MW[Rate Limiter]
+        Val_MW[Validation]
+        Routes[Route Handlers]
+        Services[Business Logic]
+    end
+    
+    subgraph "External Services"
+        Redis_DB[(Upstash Redis<br/>Rate Limiting)]
+        Postgres_DB[(PostgreSQL<br/>User Data)]
+        USDA_Service[USDA FoodData<br/>Central API]
+    end
+    
+    subgraph "Monitoring & Logging"
+        Logs[Winston Logger]
+        Metrics[Vercel Analytics]
+        Errors[Error Tracking]
+    end
+    
+    Web --> Vercel_Edge
+    Mobile --> Vercel_Edge
+    API_Client --> Vercel_Edge
+    
+    Vercel_Edge --> CDN
+    CDN --> Func
+    
+    Func --> Router
+    Router --> Middleware
+    
+    Middleware --> Auth_MW
+    Middleware --> Rate_MW
+    Middleware --> Val_MW
+    
+    Auth_MW --> Routes
+    Rate_MW --> Routes
+    Val_MW --> Routes
+    
+    Routes --> Services
+    
+    Rate_MW <--> Redis_DB
+    Services <--> Postgres_DB
+    Services <--> USDA_Service
+    
+    Func --> Logs
+    Func --> Metrics
+    Func --> Errors
+    
+    style Web fill:#e1f5fe
+    style Mobile fill:#e1f5fe
+    style API_Client fill:#e1f5fe
+    style Vercel_Edge fill:#f3e5f5
+    style Func fill:#fff3e0
+    style Redis_DB fill:#ffebee
+    style Postgres_DB fill:#e8f5e8
+    style USDA_Service fill:#f1f8e9
+```
+
+### 📁 Project Structure
+
+The backend follows a modular architecture with clear separation of concerns:
+
+- **Routes**: API endpoint definitions and request handling
+- **Middleware**: Authentication, rate limiting, and validation
+- **Services**: Business logic and external API integration
+- **Database**: Schema definitions and database queries
+- **Types**: TypeScript interfaces and Zod validation schemas
+- **Utils**: Helper functions and utilities
+
+### 🔍 Key Architectural Decisions
+
+1. **Serverless-First Design**: Built for Vercel's serverless environment with optimized cold starts
+2. **Stateless Authentication**: JWT tokens eliminate server-side session storage
+3. **Redis Rate Limiting**: Persistent, distributed rate limiting across serverless functions
+4. **Input Validation**: Zod schemas ensure type safety at runtime
+5. **Structured Logging**: Winston provides comprehensive logging with metadata
+6. **Connection Pooling**: Optimized database connections for serverless architecture
+7. **Error Handling**: Consistent error responses with proper HTTP status codes
 
 ## Contributing
 

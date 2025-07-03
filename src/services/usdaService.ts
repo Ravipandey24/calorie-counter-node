@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { USDASearchResponse, USDAFood, CalorieResponse, ENERGY_NUTRIENT_IDS } from '../types';
+import { USDASearchResponse, USDAFood, CalorieResponse, ENERGY_NUTRIENT_IDS, MACRONUTRIENT_IDS } from '../types';
 import { env } from '../env';
 import logger from '../utils/logger';
 
@@ -73,32 +73,45 @@ class USDAService {
 
     const normalizedQuery = query.toLowerCase().trim();
     
+    // Helper function to safely get description
+    const getDescription = (food: USDAFood): string => {
+      return food.description || '';
+    };
+    
+    // Helper function to safely get lowercase description
+    const getLowercaseDescription = (food: USDAFood): string => {
+      return food.lowercaseDescription || '';
+    };
+    
     // Priority 1: Exact match (case-insensitive)
-    const exactMatch = foods.find(food => 
-      food.description.toLowerCase() === normalizedQuery ||
-      food.lowercaseDescription === normalizedQuery
-    );
+    const exactMatch = foods.find(food => {
+      const desc = getDescription(food);
+      const lowerDesc = getLowercaseDescription(food);
+      return desc.toLowerCase() === normalizedQuery || lowerDesc === normalizedQuery;
+    });
     if (exactMatch) return exactMatch;
 
     // Priority 2: Description starts with query
-    const startsWithMatch = foods.find(food => 
-      food.description.toLowerCase().startsWith(normalizedQuery) ||
-      food.lowercaseDescription.startsWith(normalizedQuery)
-    );
+    const startsWithMatch = foods.find(food => {
+      const desc = getDescription(food);
+      const lowerDesc = getLowercaseDescription(food);
+      return desc.toLowerCase().startsWith(normalizedQuery) || lowerDesc.startsWith(normalizedQuery);
+    });
     if (startsWithMatch) return startsWithMatch;
 
     // Priority 3: Description contains full query
-    const containsMatch = foods.find(food => 
-      food.description.toLowerCase().includes(normalizedQuery) ||
-      food.lowercaseDescription.includes(normalizedQuery)
-    );
+    const containsMatch = foods.find(food => {
+      const desc = getDescription(food);
+      const lowerDesc = getLowercaseDescription(food);
+      return desc.toLowerCase().includes(normalizedQuery) || lowerDesc.includes(normalizedQuery);
+    });
     if (containsMatch) return containsMatch;
 
     // Priority 4: Comprehensive scoring based on multiple factors
     const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 0);
     
     const scoredFoods = foods.map(food => {
-      const foodDesc = food.description.toLowerCase();
+      const foodDesc = getDescription(food).toLowerCase();
       const foodWords = foodDesc.split(/\s+/);
       
       let score = 0;
@@ -117,7 +130,7 @@ class USDAService {
       else if (food.dataType === 'Survey (FNDDS)') score += 10;
       
       // Boost score if food has calorie information
-      const hasCalories = food.foodNutrients.some(nutrient => 
+      const hasCalories = food.foodNutrients && food.foodNutrients.some(nutrient => 
         nutrient.nutrientId === ENERGY_NUTRIENT_IDS.ENERGY_KCAL && nutrient.value > 0
       );
       if (hasCalories) score += 10;
@@ -139,6 +152,25 @@ class USDAService {
     
     // Fallback to first food if available
     return foods[0] || null;
+  }
+
+  /**
+   * Extract macronutrients per 100g from food nutrients
+   */
+  private extractMacronutrientsPer100g(food: USDAFood) {
+    const getNutrientValue = (nutrientId: number): number => {
+      const nutrient = food.foodNutrients.find(n => n.nutrientId === nutrientId);
+      return nutrient?.value || 0;
+    };
+
+    return {
+      protein: getNutrientValue(MACRONUTRIENT_IDS.PROTEIN),
+      total_fat: getNutrientValue(MACRONUTRIENT_IDS.TOTAL_FAT),
+      carbohydrates: getNutrientValue(MACRONUTRIENT_IDS.CARBS),
+      fiber: getNutrientValue(MACRONUTRIENT_IDS.FIBER) || undefined,
+      sugars: getNutrientValue(MACRONUTRIENT_IDS.SUGARS) || undefined,
+      saturated_fat: getNutrientValue(MACRONUTRIENT_IDS.SATURATED_FAT) || undefined,
+    };
   }
 
   /**
@@ -237,15 +269,57 @@ class USDAService {
         throw new Error(`No calorie information available for "${dishName}". The food "${bestMatch.description}" does not have energy data.`);
       }
 
+      // Extract macronutrients per 100g
+      const macronutrientsPer100g = this.extractMacronutrientsPer100g(bestMatch);
+
       // Calculate serving size in grams
       const servingSizeGrams = this.calculateServingSize(bestMatch);
       const caloriesPerServing = Math.round((caloriesPer100g * servingSizeGrams) / 100);
       const totalCalories = Math.round(caloriesPerServing * servings);
 
+      // Calculate macronutrients per serving and total
+      const macronutrientsPerServing = {
+        protein: Math.round((macronutrientsPer100g.protein * servingSizeGrams) / 100 * 10) / 10,
+        total_fat: Math.round((macronutrientsPer100g.total_fat * servingSizeGrams) / 100 * 10) / 10,
+        carbohydrates: Math.round((macronutrientsPer100g.carbohydrates * servingSizeGrams) / 100 * 10) / 10,
+        ...(macronutrientsPer100g.fiber && { 
+          fiber: Math.round((macronutrientsPer100g.fiber * servingSizeGrams) / 100 * 10) / 10 
+        }),
+        ...(macronutrientsPer100g.sugars && { 
+          sugars: Math.round((macronutrientsPer100g.sugars * servingSizeGrams) / 100 * 10) / 10 
+        }),
+        ...(macronutrientsPer100g.saturated_fat && { 
+          saturated_fat: Math.round((macronutrientsPer100g.saturated_fat * servingSizeGrams) / 100 * 10) / 10 
+        }),
+      };
+
+      const totalMacronutrients = {
+        protein: Math.round(macronutrientsPerServing.protein * servings * 10) / 10,
+        total_fat: Math.round(macronutrientsPerServing.total_fat * servings * 10) / 10,
+        carbohydrates: Math.round(macronutrientsPerServing.carbohydrates * servings * 10) / 10,
+        ...(macronutrientsPerServing.fiber && { 
+          fiber: Math.round(macronutrientsPerServing.fiber * servings * 10) / 10 
+        }),
+        ...(macronutrientsPerServing.sugars && { 
+          sugars: Math.round(macronutrientsPerServing.sugars * servings * 10) / 10 
+        }),
+        ...(macronutrientsPerServing.saturated_fat && { 
+          saturated_fat: Math.round(macronutrientsPerServing.saturated_fat * servings * 10) / 10 
+        }),
+      };
+
       // Build ingredient breakdown with additional info
       const ingredientBreakdown = [{
         name: bestMatch.description,
         calories_per_100g: caloriesPer100g,
+        macronutrients_per_100g: {
+          protein: Math.round(macronutrientsPer100g.protein * 10) / 10,
+          total_fat: Math.round(macronutrientsPer100g.total_fat * 10) / 10,
+          carbohydrates: Math.round(macronutrientsPer100g.carbohydrates * 10) / 10,
+          ...(macronutrientsPer100g.fiber && { fiber: Math.round(macronutrientsPer100g.fiber * 10) / 10 }),
+          ...(macronutrientsPer100g.sugars && { sugars: Math.round(macronutrientsPer100g.sugars * 10) / 10 }),
+          ...(macronutrientsPer100g.saturated_fat && { saturated_fat: Math.round(macronutrientsPer100g.saturated_fat * 10) / 10 }),
+        },
         serving_size: `${servingSizeGrams}g`,
         data_type: bestMatch.dataType,
         fdc_id: bestMatch.fdcId,
@@ -258,6 +332,8 @@ class USDAService {
         servings,
         calories_per_serving: caloriesPerServing,
         total_calories: totalCalories,
+        macronutrients_per_serving: macronutrientsPerServing,
+        total_macronutrients: totalMacronutrients,
         source: 'USDA FoodData Central',
         ingredient_breakdown: ingredientBreakdown,
         // Additional metadata

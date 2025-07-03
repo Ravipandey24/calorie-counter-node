@@ -1,755 +1,1028 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Calorie Counter API - A robust TypeScript backend service as smooth and reliable as your morning coffee. Integrates with USDA FoodData Central for accurate nutrition tracking.">
-    <meta name="keywords" content="calorie counter, nutrition api, usda api, typescript, express, coffee theme">
-    <meta name="author" content="Calorie Counter API Team">
-    <title>☕ Calorie Counter API - Documentation</title>    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Calorie Counter API - A robust TypeScript backend service as smooth and reliable as your morning coffee. Integrates with USDA FoodData Central for accurate nutrition tracking."
+    />
+    <meta
+      name="keywords"
+      content="calorie counter, nutrition api, usda api, typescript, express, coffee theme"
+    />
+    <meta name="author" content="Calorie Counter API Team" />
+    <title>☕ Calorie Counter API - Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+        color: #2d1810;
+        background: linear-gradient(
+          135deg,
+          #8b5a3c 0%,
+          #d4a574 50%,
+          #6f4e37 100%
+        );
+        min-height: 100vh;
+        position: relative;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: radial-gradient(
+            circle at 20% 80%,
+            rgba(139, 90, 60, 0.3) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(212, 165, 116, 0.3) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 40%,
+            rgba(111, 78, 55, 0.2) 0%,
+            transparent 50%
+          ),
+          repeating-conic-gradient(
+            from 0deg at 50% 50%,
+            transparent 0deg,
+            rgba(111, 78, 55, 0.05) 2deg,
+            transparent 4deg
+          );
+        pointer-events: none;
+        z-index: -1;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        background: rgba(255, 248, 240, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 20px 40px rgba(111, 78, 55, 0.2);
+        border: 1px solid rgba(212, 165, 116, 0.3);
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #8b5a3c, #6f4e37, #d4a574);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        margin-bottom: 15px;
+        text-shadow: 0 4px 8px rgba(111, 78, 55, 0.1);
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        color: #8b5a3c;
+        max-width: 600px;
+        margin: 0 auto;
+        font-weight: 400;
+      }
+      .badges {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+
+      .badge {
+        background: linear-gradient(135deg, #8b5a3c, #6f4e37);
+        color: #fff8f0;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+        border: 1px solid rgba(212, 165, 116, 0.2);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: rgba(255, 248, 240, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(111, 78, 55, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(212, 165, 116, 0.2);
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(111, 78, 55, 0.25);
+        border-color: rgba(212, 165, 116, 0.4);
+      }
+
+      .card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        color: #6f4e37;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+
+      .card-icon {
+        font-size: 1.5rem;
+      }
+
+      .endpoint {
+        background: linear-gradient(135deg, #f4f0ec, #ede4db);
+        border: 1px solid #d4a574;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: "Manrope", "Monaco", "Consolas", monospace;
+        font-size: 0.9rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(111, 78, 55, 0.1);
+      }
+
+      .method {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-right: 10px;
+        font-size: 0.8rem;
+        font-family: "Manrope", monospace;
+      }
+
+      .method.post {
+        background: linear-gradient(135deg, #8b5a3c, #6f4e37);
+        color: #fff8f0;
+        box-shadow: 0 2px 6px rgba(139, 90, 60, 0.3);
+      }
+
+      .method.get {
+        background: linear-gradient(135deg, #d4a574, #b8956a);
+        color: #2d1810;
+        box-shadow: 0 2px 6px rgba(212, 165, 116, 0.3);
+      }
+      .code-block {
+        background: linear-gradient(135deg, #2d1810, #1a0f0a);
+        color: #f4f0ec;
+        padding: 20px;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-family: "JetBrains Mono", "Fira Code", "Monaco", "Consolas",
+          monospace;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        border: 1px solid #6f4e37;
+        box-shadow: 0 4px 16px rgba(45, 24, 16, 0.4);
+        position: relative;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      .code-block::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #d4a574, #8b5a3c, #6f4e37);
+        border-radius: 12px 12px 0 0;
+      }
+
+      .code-block pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      /* Enhanced JSON syntax highlighting */
+      .json {
+        color: #e6c79c;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .string {
+        color: #f4dfc7;
+        font-style: italic;
+      }
+
+      .number {
+        color: #d4a574;
+        font-weight: 600;
+      }
+
+      .boolean {
+        color: #b8956a;
+        font-weight: 600;
+      }
+
+      .null {
+        color: #8b5a3c;
+        font-weight: 600;
+      }
+
+      .key {
+        color: #e6c79c;
+        font-weight: 600;
+      }
+
+      .comment {
+        color: #8b7355;
+        font-style: italic;
+        opacity: 0.8;
+      }
+      /* Folder structure styling */
+      .folder-structure {
+        background: linear-gradient(135deg, #2d1810, #1a0f0a);
+        color: #f4f0ec;
+        padding: 20px;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-family: "JetBrains Mono", "Fira Code", "Monaco", "Consolas",
+          monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        border: 1px solid #6f4e37;
+        box-shadow: 0 4px 16px rgba(45, 24, 16, 0.4);
+        position: relative;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      .folder-structure::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #d4a574, #8b5a3c, #6f4e37);
+        border-radius: 12px 12px 0 0;
+      }
+
+      .folder {
+        color: #d4a574;
+        font-weight: 600;
+      }
+
+      .file {
+        color: #f4dfc7;
+      }
+
+      .file-type-ts {
+        color: #e6c79c;
+      }
+
+      .file-type-js {
+        color: #f4dfc7;
+      }
+
+      .file-type-json {
+        color: #b8956a;
+      }
+
+      .file-type-html {
+        color: #d4a574;
+      }
+      .tree-line {
+        color: #8b7355;
+        opacity: 0.6;
+      }
+
+      .features-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .features-list li {
+        padding: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #6f4e37;
+        font-weight: 500;
+      }
+
+      .features-list li::before {
+        content: "☕";
+        font-size: 1.2rem;
+      }
+
+      .tech-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .tech-item {
+        background: linear-gradient(135deg, #8b5a3c, #6f4e37);
+        color: #fff8f0;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+        border: 1px solid rgba(212, 165, 116, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .tech-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(111, 78, 55, 0.4);
+      }
+
+      .rate-limits {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+
+      .rate-limit-item {
+        background: linear-gradient(135deg, #f4f0ec, #ede4db);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        border-left: 4px solid #d4a574;
+        color: #6f4e37;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(111, 78, 55, 0.1);
+      }
+
+      .footer {
+        background: rgba(255, 248, 240, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(111, 78, 55, 0.2);
+        border: 1px solid rgba(212, 165, 116, 0.3);
+      }
+
+      .footer h3 {
+        margin-bottom: 15px;
+        color: #6f4e37;
+        font-weight: 700;
+      }
+
+      .footer p {
+        color: #8b5a3c;
+        margin-bottom: 20px;
+        font-weight: 500;
+      }
+
+      .footer a {
+        color: #d4a574;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+      }
+
+      .footer a:hover {
+        color: #8b5a3c;
+      }
+      /* Coffee bean animation */
+      .coffee-bean {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #6f4e37;
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .coffee-bean:nth-child(1) {
+        top: 10%;
+        left: 10%;
+        animation-delay: 0s;
+      }
+      .coffee-bean:nth-child(2) {
+        top: 20%;
+        right: 10%;
+        animation-delay: 2s;
+      }
+      .coffee-bean:nth-child(3) {
+        bottom: 20%;
+        left: 15%;
+        animation-delay: 4s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px) rotate(0deg);
         }
-        
-        body {
-            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.6;
-            color: #2d1810;
-            background: linear-gradient(135deg, #8b5a3c 0%, #d4a574 50%, #6f4e37 100%);
-            min-height: 100vh;
-            position: relative;
+        50% {
+          transform: translateY(-20px) rotate(180deg);
         }
-          body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(139, 90, 60, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(212, 165, 116, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(111, 78, 55, 0.2) 0%, transparent 50%),
-                repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(111, 78, 55, 0.05) 2deg, transparent 4deg);
-            pointer-events: none;
-            z-index: -1;
+      }
+
+      /* Coffee steam effect */
+      .card::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        right: 20px;
+        width: 3px;
+        height: 15px;
+        background: linear-gradient(
+          to top,
+          rgba(212, 165, 116, 0.3),
+          transparent
+        );
+        border-radius: 50px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        animation: steam 2s ease-in-out infinite;
+      }
+
+      .card:hover::before {
+        opacity: 1;
+      }
+
+      @keyframes steam {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 0.3;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        50% {
+          transform: translateY(-10px) scale(1.2);
+          opacity: 0.7;
         }
-        
-        .header {
-            background: rgba(255, 248, 240, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 20px 40px rgba(111, 78, 55, 0.2);
-            border: 1px solid rgba(212, 165, 116, 0.3);
-        }
-        
+      }
+
+      /* Enhanced button hover effects */
+      .tech-item,
+      .badge {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      /* Coffee cup cursor for interactive elements */
+      .code-block,
+      .tech-item,
+      .badge {
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%236f4e37"><path d="M2 21h16v-1H2v1zm5.5-4H16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2H7.5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2z"/></svg>'),
+          pointer;
+      }
+
+      /* Ensure proper text formatting for all code elements */
+      .code-block,
+      .folder-structure,
+      .endpoint {
+        tab-size: 2;
+        -moz-tab-size: 2;
+        text-align: left;
+      }
+
+      /* Fix for code content inside blocks */
+      .code-block *,
+      .folder-structure * {
+        white-space: inherit;
+      }
+
+      @media (max-width: 768px) {
         .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #8b5a3c, #6f4e37, #d4a574);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            margin-bottom: 15px;
-            text-shadow: 0 4px 8px rgba(111, 78, 55, 0.1);
+          font-size: 2rem;
         }
-        
-        .header p {
-            font-size: 1.2rem;
-            color: #8b5a3c;
-            max-width: 600px;
-            margin: 0 auto;
-            font-weight: 400;
-        }        
-        .badges {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        
-        .badge {
-            background: linear-gradient(135deg, #8b5a3c, #6f4e37);
-            color: #fff8f0;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
-            border: 1px solid rgba(212, 165, 116, 0.2);
-        }
-        
+
         .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
+          grid-template-columns: 1fr;
         }
-        
-        .card {
-            background: rgba(255, 248, 240, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(111, 78, 55, 0.15);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid rgba(212, 165, 116, 0.2);
+
+        .badges {
+          justify-content: center;
         }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(111, 78, 55, 0.25);
-            border-color: rgba(212, 165, 116, 0.4);
+
+        .container {
+          padding: 15px;
         }
-        
-        .card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #6f4e37;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;        }
-        
-        .card-icon {
-            font-size: 1.5rem;
-        }
-        
-        .endpoint {
-            background: linear-gradient(135deg, #f4f0ec, #ede4db);
-            border: 1px solid #d4a574;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            font-family: 'Manrope', 'Monaco', 'Consolas', monospace;
-            font-size: 0.9rem;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(111, 78, 55, 0.1);
-        }
-        
-        .method {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-right: 10px;
-            font-size: 0.8rem;
-            font-family: 'Manrope', monospace;
-        }
-        
-        .method.post {
-            background: linear-gradient(135deg, #8b5a3c, #6f4e37);
-            color: #fff8f0;
-            box-shadow: 0 2px 6px rgba(139, 90, 60, 0.3);
-        }
-        
-        .method.get {
-            background: linear-gradient(135deg, #d4a574, #b8956a);
-            color: #2d1810;
-            box-shadow: 0 2px 6px rgba(212, 165, 116, 0.3);
-        }        .code-block {
-            background: linear-gradient(135deg, #2d1810, #1a0f0a);
-            color: #f4f0ec;
-            padding: 20px;
-            border-radius: 12px;
-            overflow-x: auto;
-            margin: 15px 0;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            border: 1px solid #6f4e37;
-            box-shadow: 0 4px 16px rgba(45, 24, 16, 0.4);
-            position: relative;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-        
-        .code-block::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #d4a574, #8b5a3c, #6f4e37);
-            border-radius: 12px 12px 0 0;
-        }
-        
-        .code-block pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        /* Enhanced JSON syntax highlighting */
-        .json {
-            color: #e6c79c;
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .string {
-            color: #f4dfc7;
-            font-style: italic;
-        }
-        
-        .number {
-            color: #d4a574;
-            font-weight: 600;
-        }
-        
-        .boolean {
-            color: #b8956a;
-            font-weight: 600;
-        }
-        
-        .null {
-            color: #8b5a3c;
-            font-weight: 600;
-        }
-        
-        .key {
-            color: #e6c79c;
-            font-weight: 600;
-        }
-        
-        .comment {
-            color: #8b7355;
-            font-style: italic;
-            opacity: 0.8;
-        }
-          /* Folder structure styling */
-        .folder-structure {
-            background: linear-gradient(135deg, #2d1810, #1a0f0a);
-            color: #f4f0ec;
-            padding: 20px;
-            border-radius: 12px;
-            overflow-x: auto;
-            margin: 15px 0;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            border: 1px solid #6f4e37;
-            box-shadow: 0 4px 16px rgba(45, 24, 16, 0.4);
-            position: relative;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-        
-        .folder-structure::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #d4a574, #8b5a3c, #6f4e37);
-            border-radius: 12px 12px 0 0;
-        }
-        
-        .folder {
-            color: #d4a574;
-            font-weight: 600;
-        }
-        
-        .file {
-            color: #f4dfc7;
-        }
-        
-        .file-type-ts {
-            color: #e6c79c;
-        }
-        
-        .file-type-js {
-            color: #f4dfc7;
-        }
-        
-        .file-type-json {
-            color: #b8956a;
-        }
-        
-        .file-type-html {
-            color: #d4a574;
-        }
-          .tree-line {
-            color: #8b7355;
-            opacity: 0.6;
-        }
-        
-        .features-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .features-list li {
-            padding: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #6f4e37;
-            font-weight: 500;
-        }
-        
-        .features-list li::before {
-            content: "☕";
-            font-size: 1.2rem;
-        }
-        
-        .tech-stack {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .tech-item {
-            background: linear-gradient(135deg, #8b5a3c, #6f4e37);
-            color: #fff8f0;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
-            border: 1px solid rgba(212, 165, 116, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .tech-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(111, 78, 55, 0.4);
-        }
-        
-        .rate-limits {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .rate-limit-item {
-            background: linear-gradient(135deg, #f4f0ec, #ede4db);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid #d4a574;
-            color: #6f4e37;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(111, 78, 55, 0.1);
-        }
-        
-        .footer {
-            background: rgba(255, 248, 240, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;            padding: 30px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(111, 78, 55, 0.2);
-            border: 1px solid rgba(212, 165, 116, 0.3);
-        }
-        
-        .footer h3 {
-            margin-bottom: 15px;
-            color: #6f4e37;
-            font-weight: 700;
-        }
-        
-        .footer p {
-            color: #8b5a3c;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-        
-        .footer a {
-            color: #d4a574;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-        
-        .footer a:hover {
-            color: #8b5a3c;
-        }        
-        /* Coffee bean animation */
-        .coffee-bean {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #6f4e37;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .coffee-bean:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
-        .coffee-bean:nth-child(2) { top: 20%; right: 10%; animation-delay: 2s; }
-        .coffee-bean:nth-child(3) { bottom: 20%; left: 15%; animation-delay: 4s; }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        
-        /* Coffee steam effect */
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -5px;
-            right: 20px;
-            width: 3px;
-            height: 15px;
-            background: linear-gradient(to top, rgba(212, 165, 116, 0.3), transparent);
-            border-radius: 50px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            animation: steam 2s ease-in-out infinite;
-        }
-        
-        .card:hover::before {
-            opacity: 1;
-        }
-        
-        @keyframes steam {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
-            50% { transform: translateY(-10px) scale(1.2); opacity: 0.7; }
-        }
-        
-        /* Enhanced button hover effects */
-        .tech-item, .badge {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-          /* Coffee cup cursor for interactive elements */
-        .code-block, .tech-item, .badge {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%236f4e37"><path d="M2 21h16v-1H2v1zm5.5-4H16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2H7.5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2z"/></svg>'), pointer;
-        }
-        
-        /* Ensure proper text formatting for all code elements */
-        .code-block, .folder-structure, .endpoint {
-            tab-size: 2;
-            -moz-tab-size: 2;
-            text-align: left;
-        }
-        
-        /* Fix for code content inside blocks */
-        .code-block *, .folder-structure * {
-            white-space: inherit;
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .badges {
-                justify-content: center;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-        }    </style>
-</head>
-<body>
+      }
+    </style>
+  </head>
+  <body>
     <!-- Floating coffee beans -->
     <div class="coffee-bean"></div>
     <div class="coffee-bean"></div>
     <div class="coffee-bean"></div>
-    
+
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>☕ Calorie Counter API</h1>
-            <p>A robust Express TypeScript backend service that integrates with the USDA FoodData Central API to provide accurate calorie calculation functionality for various dishes. Fuel your nutrition tracking with the warmth of a perfect brew.</p>
-            <div class="badges">
-                <span class="badge">TypeScript</span>
-                <span class="badge">Express.js</span>
-                <span class="badge">PostgreSQL</span>
-                <span class="badge">Drizzle ORM</span>
-                <span class="badge">JWT Auth</span>
-                <span class="badge">USDA API</span>
-                <span class="badge">Vercel Ready</span>
-            </div>
-        </div>        <!-- Main Grid -->
-        <div class="grid">
-            <!-- Features Card -->
-            <div class="card">
-                <h2><span class="card-icon">☕</span>Key Features</h2>
-                <ul class="features-list">
-                    <li>User Authentication with JWT tokens</li>
-                    <li>USDA FoodData Central API integration</li>
-                    <li>Smart food matching algorithm</li>
-                    <li>Redis-based rate limiting</li>
-                    <li>Professional logging with Winston</li>
-                    <li>Zod schema validation</li>
-                    <li>Serverless deployment ready</li>
-                    <li>Comprehensive security features</li>
-                </ul>
-            </div>
-
-            <!-- Tech Stack Card -->
-            <div class="card">
-                <h2><span class="card-icon">🫘</span>Tech Stack</h2>
-                <div class="tech-stack">
-                    <div class="tech-item">Node.js</div>
-                    <div class="tech-item">TypeScript</div>
-                    <div class="tech-item">Express.js</div>
-                    <div class="tech-item">PostgreSQL</div>
-                    <div class="tech-item">Drizzle ORM</div>
-                    <div class="tech-item">Zod</div>
-                    <div class="tech-item">JWT</div>
-                    <div class="tech-item">Upstash Redis</div>
-                    <div class="tech-item">Winston</div>
-                    <div class="tech-item">Vercel</div>
-                </div>
-            </div>
+      <!-- Header -->
+      <div class="header">
+        <h1>☕ Calorie Counter API</h1>
+        <p>
+          A robust Express TypeScript backend service that integrates with the
+          USDA FoodData Central API to provide accurate calorie calculation
+          functionality for various dishes. Fuel your nutrition tracking with
+          the warmth of a perfect brew.
+        </p>
+        <div class="badges">
+          <span class="badge">TypeScript</span>
+          <span class="badge">Express.js</span>
+          <span class="badge">PostgreSQL</span>
+          <span class="badge">Drizzle ORM</span>
+          <span class="badge">JWT Auth</span>
+          <span class="badge">USDA API</span>
+          <span class="badge">Vercel Ready</span>
         </div>
-
-        <!-- API Endpoints Grid -->
-        <div class="grid">
-            <!-- Authentication Endpoints -->
-            <div class="card">
-                <h2><span class="card-icon">🔐</span>Authentication</h2>
-                
-                <div class="endpoint">
-                    <span class="method post">POST</span>/auth/register
-                </div>                <div class="code-block">
-{
-  <span class="key">"first_name"</span>: <span class="string">"John"</span>,
-  <span class="key">"last_name"</span>: <span class="string">"Doe"</span>,
-  <span class="key">"email"</span>: <span class="string">"john@example.com"</span>,
-  <span class="key">"password"</span>: <span class="string">"secure123"</span>
-}
-                </div>
-
-                <div class="endpoint">
-                    <span class="method post">POST</span>/auth/login
-                </div>                <div class="code-block">
-{
-  <span class="key">"email"</span>: <span class="string">"john@example.com"</span>,
-  <span class="key">"password"</span>: <span class="string">"secure123"</span>
-}
-                </div>
-
-                <p><strong>Response:</strong> Returns user data and JWT token for authenticated requests.</p>
-            </div>            <!-- Calorie Calculation -->
-            <div class="card">
-                <h2><span class="card-icon">🥤</span>Calorie Calculation</h2>
-                
-                <div class="endpoint">
-                    <span class="method post">POST</span>/get-calories
-                    <br><small>☕ Requires Authentication Header</small>
-                </div>                <div class="code-block">
-<span class="json">Authorization:</span> Bearer &lt;jwt_token&gt;
-
-{
-  <span class="key">"dish_name"</span>: <span class="string">"chicken biryani"</span>,
-  <span class="key">"servings"</span>: <span class="number">2</span>
-}
-                </div>
-
-                <p><strong>Response Example:</strong></p>                <div class="code-block">
-{
-  <span class="key">"dish_name"</span>: <span class="string">"chicken biryani"</span>,
-  <span class="key">"servings"</span>: <span class="number">2</span>,
-  <span class="key">"calories_per_serving"</span>: <span class="number">280</span>,
-  <span class="key">"total_calories"</span>: <span class="number">560</span>,
-  <span class="key">"source"</span>: <span class="string">"USDA FoodData Central"</span>,
-  <span class="key">"ingredient_breakdown"</span>: [...]
-}
-                </div>
-            </div>
-        </div>
-
-        <!-- More Features Grid -->
-        <div class="grid">            <!-- Security & Rate Limiting -->
-            <div class="card">
-                <h2><span class="card-icon">🔒</span>Security & Rate Limiting</h2>
-                <div class="rate-limits">
-                    <div class="rate-limit-item">
-                        <strong>General API</strong><br>
-                        100 req/15min
-                    </div>
-                    <div class="rate-limit-item">
-                        <strong>Calorie Endpoints</strong><br>
-                        15 req/15min
-                    </div>
-                    <div class="rate-limit-item">
-                        <strong>Auth Endpoints</strong><br>
-                        5 req/15min
-                    </div>
-                </div>
-                <ul class="features-list" style="margin-top: 20px;">
-                    <li>Upstash Redis for persistent rate limiting</li>
-                    <li>Bcrypt password hashing (12 salt rounds)</li>
-                    <li>Helmet.js security headers</li>
-                    <li>CORS protection with configurable origins</li>
-                    <li>Input validation with Zod schemas</li>
-                </ul>
-            </div>            <!-- Database Schema -->
-            <div class="card">
-                <h2><span class="card-icon">🗃️</span>Database Schema</h2>                <div class="code-block">
-<span class="json">Users Table:</span>
-<span class="tree-line">├──</span> <span class="key">id</span> <span class="comment">(Primary Key)</span>
-<span class="tree-line">├──</span> <span class="key">firstName</span> <span class="comment">(User's first name)</span>
-<span class="tree-line">├──</span> <span class="key">lastName</span> <span class="comment">(User's last name)</span>
-<span class="tree-line">├──</span> <span class="key">email</span> <span class="comment">(Unique email address)</span>
-<span class="tree-line">├──</span> <span class="key">passwordHash</span> <span class="comment">(Bcrypt hashed password)</span>
-<span class="tree-line">├──</span> <span class="key">createdAt</span> <span class="comment">(Registration timestamp)</span>
-<span class="tree-line">└──</span> <span class="key">updatedAt</span> <span class="comment">(Last update timestamp)</span>
-                </div>
-                <p><strong>Note:</strong> Database uses camelCase internally, but API responses use snake_case format for consistency.</p>
-            </div>
-        </div>
-
-        <!-- Health Check & Project Structure -->
-        <div class="grid">            <!-- Health Check -->
-            <div class="card">
-                <h2><span class="card-icon">🌡️</span>Health Check</h2>
-                <div class="endpoint">
-                    <span class="method get">GET</span>/health
-                </div>                <div class="code-block">
-{
-  <span class="key">"status"</span>: <span class="string">"OK"</span>,
-  <span class="key">"message"</span>: <span class="string">"Calorie Counter API is running"</span>,
-  <span class="key">"timestamp"</span>: <span class="string">"2024-01-01T12:00:00.000Z"</span>,
-  <span class="key">"environment"</span>: <span class="string">"production"</span>
-}
-                </div>
-                <p>Use this endpoint to monitor API availability and response times.</p>
-            </div>            <!-- Project Structure -->
-            <div class="card">
-                <h2><span class="card-icon">🏗️</span>Project Structure</h2>
-                <div class="folder-structure">
-<span class="folder">backend/</span>
-<span class="tree-line">├──</span> <span class="folder">src/</span>
-<span class="tree-line">│   ├──</span> <span class="folder">routes/</span>          <span class="comment"># API route handlers</span>
-<span class="tree-line">│   │   ├──</span> <span class="file-type-ts">auth.ts</span>      <span class="comment"># Authentication endpoints</span>
-<span class="tree-line">│   │   └──</span> <span class="file-type-ts">calories.ts</span>  <span class="comment"># Calorie calculation endpoints</span>
-<span class="tree-line">│   ├──</span> <span class="folder">middleware/</span>      <span class="comment"># Express middleware</span>
-<span class="tree-line">│   │   ├──</span> <span class="file-type-ts">auth.ts</span>      <span class="comment"># JWT authentication</span>
-<span class="tree-line">│   │   └──</span> <span class="file-type-ts">rateLimiter.ts</span> <span class="comment"># Redis rate limiting</span>
-<span class="tree-line">│   ├──</span> <span class="folder">services/</span>        <span class="comment"># Business logic</span>
-<span class="tree-line">│   │   └──</span> <span class="file-type-ts">usdaService.ts</span> <span class="comment"># USDA API integration</span>
-<span class="tree-line">│   ├──</span> <span class="folder">db/</span>             <span class="comment"># Database layer</span>
-<span class="tree-line">│   │   ├──</span> <span class="file-type-ts">connection.ts</span> <span class="comment"># Supabase connection</span>
-<span class="tree-line">│   │   └──</span> <span class="file-type-ts">schema.ts</span>    <span class="comment"># Drizzle ORM schemas</span>
-<span class="tree-line">│   ├──</span> <span class="folder">utils/</span>          <span class="comment"># Utilities</span>
-<span class="tree-line">│   │   └──</span> <span class="file-type-ts">logger.ts</span>   <span class="comment"># Winston logging</span>
-<span class="tree-line">│   └──</span> <span class="folder">types/</span>          <span class="comment"># TypeScript definitions</span>
-<span class="tree-line">├──</span> <span class="folder">drizzle/</span>            <span class="comment"># Database migrations</span>
-<span class="tree-line">└──</span> <span class="folder">api/</span>                <span class="comment"># Vercel serverless functions</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- USDA Integration -->
+      </div>
+      <!-- Main Grid -->
+      <div class="grid">
+        <!-- Features Card -->
         <div class="card">
-            <h2><span class="card-icon">🌱</span>USDA FoodData Central Integration</h2>
-            <ul class="features-list">
-                <li><strong>Smart Food Matching:</strong> Advanced fuzzy matching algorithm finds the best food matches</li>
-                <li><strong>Priority System:</strong> Prioritizes Foundation foods > SR Legacy > Survey (FNDDS) > Branded</li>
-                <li><strong>Comprehensive Search:</strong> Searches across multiple USDA food databases</li>
-                <li><strong>Nutrition Accuracy:</strong> Uses official USDA nutritional data</li>
-                <li><strong>Fallback Handling:</strong> Graceful handling of missing or incomplete data</li>
-                <li><strong>Performance Optimized:</strong> Caching and efficient API usage</li>
-            </ul>
-            
-            <p><strong>Matching Algorithm:</strong></p>            <div class="code-block">
-<span class="number">1.</span> <span class="key">Exact match</span> <span class="comment">(case-insensitive)</span>
-<span class="number">2.</span> <span class="key">Description starts with query</span>
-<span class="number">3.</span> <span class="key">Description contains full query</span>
-<span class="number">4.</span> <span class="key">Comprehensive scoring:</span>
-   <span class="tree-line">├──</span> <span class="string">Word matching score</span>
-   <span class="tree-line">├──</span> <span class="string">Data type priority boost</span>
-   <span class="tree-line">├──</span> <span class="string">Calorie availability boost</span>
-   <span class="tree-line">└──</span> <span class="string">Description length penalty</span>
-            </div>
+          <h2><span class="card-icon">☕</span>Key Features</h2>
+          <ul class="features-list">
+            <li>User Authentication with JWT & bcrypt (12 rounds)</li>
+            <li>USDA FoodData Central API integration</li>
+            <li>4-tier smart food matching algorithm</li>
+            <li>Upstash Redis sliding window rate limiting</li>
+            <li>Structured logging with Winston</li>
+            <li>Zod schema validation & environment validation</li>
+            <li>Serverless deployment ready (Vercel)</li>
+            <li>Comprehensive security (Helmet, CORS, input validation)</li>
+          </ul>
         </div>
 
-        <!-- Environment Setup -->
+        <!-- Tech Stack Card -->
         <div class="card">
-            <h2><span class="card-icon">⚗️</span>Environment Configuration</h2>            <div class="code-block">
-<span class="comment"># Database (Supabase)</span>
-<span class="key">DATABASE_URL</span>=<span class="string">postgresql://postgres:[PASSWORD]@db.[PROJECT].supabase.co:5432/postgres</span>
-
-<span class="comment"># External APIs</span>
-<span class="key">USDA_API_KEY</span>=<span class="string">your_usda_api_key_here</span>
-
-<span class="comment"># Redis (Upstash)</span>
-<span class="key">UPSTASH_REDIS_REST_URL</span>=<span class="string">https://your-redis.upstash.io</span>
-<span class="key">UPSTASH_REDIS_REST_TOKEN</span>=<span class="string">your_redis_token</span>
-
-<span class="comment"># Authentication</span>
-<span class="key">JWT_SECRET</span>=<span class="string">your_secret_key_minimum_32_chars</span>
-<span class="key">JWT_EXPIRES_IN</span>=<span class="string">7d</span>
-
-<span class="comment"># Server Configuration</span>
-<span class="key">PORT</span>=<span class="number">3001</span>
-<span class="key">NODE_ENV</span>=<span class="string">development</span>
-<span class="key">CORS_ORIGIN</span>=<span class="string">http://localhost:3000</span>
-            </div>
+          <h2><span class="card-icon">🫘</span>Tech Stack</h2>
+          <div class="tech-stack">
+            <div class="tech-item">Node.js 18+</div>
+            <div class="tech-item">TypeScript</div>
+            <div class="tech-item">Express.js</div>
+            <div class="tech-item">PostgreSQL</div>
+            <div class="tech-item">Drizzle ORM</div>
+            <div class="tech-item">Zod Validation</div>
+            <div class="tech-item">JWT Auth</div>
+            <div class="tech-item">Upstash Redis</div>
+            <div class="tech-item">Winston Logger</div>
+            <div class="tech-item">Helmet Security</div>
+            <div class="tech-item">Bcrypt.js</div>
+            <div class="tech-item">Vercel</div>
+          </div>
         </div>
+      </div>
 
-        <!-- Footer -->
-        <div class="footer">            <h3>☕ Ready to Brew & Deploy</h3>
-            <p>This API is optimized for serverless deployment on Vercel with automatic scaling, edge caching, and global distribution. As smooth and reliable as your morning coffee.</p>
-            <p>
-                <strong>Quick Start:</strong> 
-                <a href="#" onclick="navigator.clipboard.writeText('git clone [your-repo] && cd backend && npm install && npm run dev')">Copy setup commands</a>
-            </p>
-            <p><strong>Version:</strong> 1.0.0 | <strong>Node.js:</strong> 18+ Required | <strong>License:</strong> MIT</p>
-        </div>
-    </div>    <script>
-        // Add some coffee-themed interactivity
-        document.addEventListener('DOMContentLoaded', function() {
-            // Coffee steam animation for cards
-            function addCoffeeSteam() {
-                const cards = document.querySelectorAll('.card');
-                cards.forEach(card => {
-                    card.addEventListener('mouseenter', function() {
-                        this.style.background = 'rgba(255, 248, 240, 0.98)';
-                        this.style.transform = 'translateY(-5px) scale(1.01)';
-                    });
-                    card.addEventListener('mouseleave', function() {
-                        this.style.background = 'rgba(255, 248, 240, 0.95)';
-                        this.style.transform = 'translateY(0) scale(1)';
-                    });
-                });
+      <!-- API Endpoints Grid -->
+      <div class="grid">
+        <!-- Authentication Endpoints -->
+        <div class="card">
+          <h2><span class="card-icon">🔐</span>Authentication</h2>
+
+          <div class="endpoint">
+            <span class="method post">POST</span>/auth/register
+          </div>
+          <div class="code-block">
+            {
+            <span class="key">"first_name"</span>:
+            <span class="string">"John"</span>,
+            <span class="key">"last_name"</span>:
+            <span class="string">"Doe"</span>, <span class="key">"email"</span>:
+            <span class="string">"john@example.com"</span>,
+            <span class="key">"password"</span>:
+            <span class="string">"secure123"</span>
             }
+          </div>
 
-            // Add click handlers for code blocks to copy to clipboard
-            const codeBlocks = document.querySelectorAll('.code-block');
-            codeBlocks.forEach(block => {
-                block.style.cursor = 'pointer';
-                block.title = 'Click to copy - as smooth as your morning brew ☕';
-                block.addEventListener('click', function() {
-                    navigator.clipboard.writeText(this.textContent.trim()).then(() => {
-                        // Coffee-themed success feedback
-                        const originalBackground = this.style.background;
-                        this.style.background = 'linear-gradient(135deg, #8b5a3c, #d4a574)';
-                        this.style.border = '2px solid #d4a574';
-                        
-                        // Create a temporary toast notification
-                        const toast = document.createElement('div');
-                        toast.textContent = '☕ Copied to clipboard!';
-                        toast.style.cssText = `
+          <div class="endpoint">
+            <span class="method post">POST</span>/auth/login
+          </div>
+          <div class="code-block">
+            {
+            <span class="key">"email"</span>:
+            <span class="string">"john@example.com"</span>,
+            <span class="key">"password"</span>:
+            <span class="string">"secure123"</span>
+            }
+          </div>
+
+          <p>
+            <strong>Response:</strong> Returns user data and JWT token for
+            authenticated requests.
+          </p>
+        </div>
+        <!-- Calorie Calculation -->
+        <div class="card">
+          <h2><span class="card-icon">🥤</span>Calorie Calculation</h2>
+
+          <div class="endpoint">
+            <span class="method post">POST</span>/get-calories <br /><small
+              >☕ Requires Authentication Header</small
+            >
+          </div>
+          <div class="code-block">
+            <span class="json">Authorization:</span> Bearer &lt;jwt_token&gt; {
+            <span class="key">"dish_name"</span>:
+            <span class="string">"chicken biryani"</span>,
+            <span class="key">"servings"</span>: <span class="number">2</span>
+            }
+          </div>
+
+          <p><strong>Response Example:</strong></p>
+          <div class="code-block">
+            {
+            <span class="key">"dish_name"</span>:
+            <span class="string">"chicken biryani"</span>,
+            <span class="key">"servings"</span>: <span class="number">2</span>,
+            <span class="key">"calories_per_serving"</span>:
+            <span class="number">280</span>,
+            <span class="key">"total_calories"</span>:
+            <span class="number">560</span>, <span class="key">"source"</span>:
+            <span class="string">"USDA FoodData Central"</span>,
+            <span class="key">"ingredient_breakdown"</span>: [...] }
+          </div>
+        </div>
+      </div>
+
+      <!-- More Features Grid -->
+      <div class="grid">
+        <!-- Security & Rate Limiting -->
+        <div class="card">
+          <h2><span class="card-icon">🔒</span>Security & Rate Limiting</h2>
+          <div class="rate-limits">
+            <div class="rate-limit-item">
+              <strong>General API</strong><br />
+              100 req/5min
+            </div>
+            <div class="rate-limit-item">
+              <strong>Calorie Endpoints</strong><br />
+              15 req/5min
+            </div>
+            <div class="rate-limit-item">
+              <strong>Auth Endpoints</strong><br />
+              5 req/5min
+            </div>
+          </div>
+          <ul class="features-list" style="margin-top: 20px">
+            <li>Upstash Redis with sliding window rate limiting</li>
+            <li>Bcrypt password hashing (12 salt rounds)</li>
+            <li>Helmet.js security headers</li>
+            <li>CORS protection with configurable origins</li>
+            <li>Input validation with Zod schemas</li>
+            <li>Winston logging with structured data</li>
+          </ul>
+        </div>
+        <!-- Database Schema -->
+        <div class="card">
+          <h2><span class="card-icon">🗃️</span>Database Schema</h2>
+          <div class="code-block">
+            <span class="json">Users Table:</span>
+            <span class="tree-line">├──</span> <span class="key">id</span>
+            <span class="comment">(Primary Key)</span>
+            <span class="tree-line">├──</span>
+            <span class="key">firstName</span>
+            <span class="comment">(User's first name)</span>
+            <span class="tree-line">├──</span>
+            <span class="key">lastName</span>
+            <span class="comment">(User's last name)</span>
+            <span class="tree-line">├──</span> <span class="key">email</span>
+            <span class="comment">(Unique email address)</span>
+            <span class="tree-line">├──</span>
+            <span class="key">passwordHash</span>
+            <span class="comment">(Bcrypt hashed password)</span>
+            <span class="tree-line">├──</span>
+            <span class="key">createdAt</span>
+            <span class="comment">(Registration timestamp)</span>
+            <span class="tree-line">└──</span>
+            <span class="key">updatedAt</span>
+            <span class="comment">(Last update timestamp)</span>
+          </div>
+          <p>
+            <strong>Note:</strong> Database uses camelCase internally, but API
+            responses use snake_case format for consistency.
+          </p>
+        </div>
+      </div>
+
+      <!-- Health Check & Project Structure -->
+      <div class="grid">
+        <!-- Health Check -->
+        <div class="card">
+          <h2><span class="card-icon">🌡️</span>Health Check</h2>
+          <div class="endpoint"><span class="method get">GET</span>/health</div>
+          <div class="code-block">
+            {
+            <span class="key">"status"</span>: <span class="string">"OK"</span>,
+            <span class="key">"message"</span>:
+            <span class="string">"Calorie Counter API is running"</span>,
+            <span class="key">"timestamp"</span>:
+            <span class="string">"2024-01-01T12:00:00.000Z"</span>,
+            <span class="key">"environment"</span>:
+            <span class="string">"production"</span>
+            }
+          </div>
+          <p>
+            Use this endpoint to monitor API availability and response times.
+          </p>
+        </div>
+        <!-- Project Structure -->
+        <div class="card">
+          <h2><span class="card-icon">🏗️</span>Project Structure</h2>
+          <div class="folder-structure"> 
+            <span class="folder">backend/</span>
+            <span class="tree-line">├──</span> <span class="folder">src/</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="file-type-ts">app.ts</span>
+            <span class="comment"># Express app configuration</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="file-type-ts">index.ts</span>
+            <span class="comment"># Server entry point</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="file-type-ts">env.ts</span>
+            <span class="comment"># Environment validation with Zod</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="folder">routes/</span>
+            <span class="comment"># API route handlers</span>
+            <span class="tree-line">│ │ ├──</span>
+            <span class="file-type-ts">auth.ts</span>
+            <span class="comment"># User registration & login</span>
+            <span class="tree-line">│ │ └──</span>
+            <span class="file-type-ts">calories.ts</span>
+            <span class="comment"># Calorie calculation endpoints</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="folder">middleware/</span>
+            <span class="comment"># Express middleware</span>
+            <span class="tree-line">│ │ ├──</span>
+            <span class="file-type-ts">auth.ts</span>
+            <span class="comment"># JWT authentication</span>
+            <span class="tree-line">│ │ └──</span>
+            <span class="file-type-ts">rateLimiter.ts</span>
+            <span class="comment"># Upstash Redis rate limiting</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="folder">services/</span>
+            <span class="comment"># Business logic</span>
+            <span class="tree-line">│ │ └──</span>
+            <span class="file-type-ts">usdaService.ts</span>
+            <span class="comment"># USDA API integration & matching</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="folder">db/</span>
+            <span class="comment"># Database layer</span>
+            <span class="tree-line">│ │ ├──</span>
+            <span class="file-type-ts">connection.ts</span>
+            <span class="comment"># Drizzle database connection</span>
+            <span class="tree-line">│ │ └──</span>
+            <span class="file-type-ts">schema.ts</span>
+            <span class="comment"># Drizzle ORM schemas</span>
+            <span class="tree-line">│ ├──</span>
+            <span class="folder">utils/</span>
+            <span class="comment"># Utilities</span>
+            <span class="tree-line">│ │ └──</span>
+            <span class="file-type-ts">logger.ts</span>
+            <span class="comment"># Winston structured logging</span>
+            <span class="tree-line">│ └──</span>
+            <span class="folder">types/</span>
+            <span class="comment"># TypeScript definitions & Zod schemas</span>
+            <span class="tree-line">├──</span>
+            <span class="folder">drizzle/</span>
+            <span class="comment"># Database migrations</span>
+            <span class="tree-line">├──</span> <span class="folder">api/</span>
+            <span class="comment"># Vercel serverless functions</span>
+            <span class="tree-line">├──</span>
+            <span class="file-type-json">package.json</span>
+            <span class="comment"># Dependencies & scripts</span>
+            <span class="tree-line">├──</span>
+            <span class="file-type-ts">tsconfig.json</span>
+            <span class="comment"># TypeScript configuration</span>
+            <span class="tree-line">├──</span>
+            <span class="file-type-ts">drizzle.config.ts</span>
+            <span class="comment"># Drizzle ORM configuration</span>
+            <span class="tree-line">├──</span>
+            <span class="file">env.example</span>
+            <span class="comment"># Environment variables template</span>
+            <span class="tree-line">└──</span>
+            <span class="file-type-html">index.html</span>
+            <span class="comment"># API documentation (this file)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- USDA Integration -->
+      <div class="card">
+        <h2>
+          <span class="card-icon">🌱</span>USDA FoodData Central Integration
+        </h2>
+        <ul class="features-list">
+          <li>
+            <strong>Smart Food Matching:</strong> Multi-tier fuzzy matching
+            algorithm with intelligent scoring
+          </li>
+          <li>
+            <strong>Priority System:</strong> Foundation > SR Legacy > Survey
+            (FNDDS) > Branded foods
+          </li>
+          <li>
+            <strong>Comprehensive Search:</strong> POST-based search across all
+            USDA food databases
+          </li>
+          <li>
+            <strong>Nutrition Accuracy:</strong> Official USDA nutritional data
+            with macronutrient breakdown
+          </li>
+          <li>
+            <strong>Fallback Handling:</strong> Graceful handling of missing
+            data with energy unit conversion
+          </li>
+          <li>
+            <strong>Performance Optimized:</strong> 10-second timeout with
+            sorted results by data type
+          </li>
+        </ul>
+
+        <p><strong>4-Tier Matching Algorithm:</strong></p>
+        <div class="code-block">
+          <span class="number">1.</span> <span class="key">Exact match</span>
+          <span class="comment">(case-insensitive description matching)</span>
+          <span class="number">2.</span>
+          <span class="key">Starts with query</span>
+          <span class="comment">(description begins with search term)</span>
+          <span class="number">3.</span>
+          <span class="key">Contains full query</span>
+          <span class="comment"
+            >(description includes complete search term)</span
+          >
+          <span class="number">4.</span>
+          <span class="key">Comprehensive scoring:</span>
+          <span class="tree-line">├──</span>
+          <span class="string"
+            >Word matching score (query words in description)</span
+          >
+          <span class="tree-line">├──</span>
+          <span class="string"
+            >Data type priority boost (+10 to +20 points)</span
+          >
+          <span class="tree-line">├──</span>
+          <span class="string">Calorie availability boost (+10 points)</span>
+          <span class="tree-line">└──</span>
+          <span class="string"
+            >Description length penalty (-5 for long descriptions)</span
+          >
+
+          <span class="key">Energy Conversion:</span>
+          <span class="comment"
+            >Automatic kJ to kcal conversion (1 kcal = 4.184 kJ)</span
+          >
+          <span class="key">Macronutrients:</span>
+          <span class="comment"
+            >Protein, fats, carbs, fiber, sugars per 100g</span
+          >
+        </div>
+      </div>
+
+      <!-- Environment Setup -->
+      <div class="card">
+        <h2><span class="card-icon">⚗️</span>Environment Configuration</h2>
+        <div class="code-block">
+          <span class="comment"># Database Configuration</span>
+          <span class="comment"
+            ># Supabase Database URL with connection pooling (recommended for
+            production)</span
+          >
+          <span class="comment"
+            ># Get this from your Supabase project settings > Database >
+            Connection String</span
+          >
+          <span class="comment"
+            ># Make sure to replace the password placeholder with your actual
+            database password</span
+          >
+          <span class="key">DATABASE_URL</span>=<span class="string"
+            >postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres</span
+          >
+
+          <span class="comment"># External APIs</span>
+          <span class="key">USDA_API_KEY</span>=<span class="string"
+            >your_usda_api_key_here</span
+          >
+
+          <span class="comment"># Redis Configuration (Upstash)</span>
+          <span class="key">UPSTASH_REDIS_REST_URL</span>=<span class="string"
+            >https://your-redis.upstash.io</span
+          >
+          <span class="key">UPSTASH_REDIS_REST_TOKEN</span>=<span class="string"
+            >your_redis_token_here</span
+          >
+
+          <span class="comment"># JWT Configuration</span>
+          <span class="key">JWT_SECRET</span>=<span class="string"
+            >your_jwt_secret_here_minimum_32_characters_required_for_security</span
+          >
+          <span class="key">JWT_EXPIRES_IN</span>=<span class="string">7d</span>
+
+          <span class="comment"># Server Configuration</span>
+          <span class="key">PORT</span>=<span class="number">3001</span>
+          <span class="key">NODE_ENV</span>=<span class="string"
+            >development</span
+          >
+
+          <span class="comment"># CORS Configuration</span>
+          <span class="key">CORS_ORIGIN</span>=<span class="string"
+            >http://localhost:3000</span
+          >
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <h3>☕ Ready to Brew & Deploy</h3>
+        <p>
+          This API is optimized for serverless deployment on Vercel with
+          automatic scaling, edge caching, and global distribution. As smooth
+          and reliable as your morning coffee.
+        </p>
+        <p>
+          <strong>Quick Start:</strong>
+          <a
+            href="#"
+            onclick="navigator.clipboard.writeText('git clone [your-repo] && cd backend && pnpm install && pnpm dev')"
+            >Copy setup commands</a
+          >
+        </p>
+        <p>
+          <strong>Development:</strong> <code>pnpm dev</code> |
+          <strong>Build:</strong> <code>pnpm build</code> |
+          <strong>Deploy:</strong> <code>vercel</code>
+        </p>
+        <p>
+          <strong>Version:</strong> 1.0.0 | <strong>Node.js:</strong> 18+
+          Required | <strong>License:</strong> MIT
+        </p>
+      </div>
+    </div>
+    <script>
+      // Add some coffee-themed interactivity
+      document.addEventListener("DOMContentLoaded", function () {
+        // Coffee steam animation for cards
+        function addCoffeeSteam() {
+          const cards = document.querySelectorAll(".card");
+          cards.forEach((card) => {
+            card.addEventListener("mouseenter", function () {
+              this.style.background = "rgba(255, 248, 240, 0.98)";
+              this.style.transform = "translateY(-5px) scale(1.01)";
+            });
+            card.addEventListener("mouseleave", function () {
+              this.style.background = "rgba(255, 248, 240, 0.95)";
+              this.style.transform = "translateY(0) scale(1)";
+            });
+          });
+        }
+
+        // Add click handlers for code blocks to copy to clipboard
+        const codeBlocks = document.querySelectorAll(".code-block");
+        codeBlocks.forEach((block) => {
+          block.style.cursor = "pointer";
+          block.title = "Click to copy - as smooth as your morning brew ☕";
+          block.addEventListener("click", function () {
+            navigator.clipboard.writeText(this.textContent.trim()).then(() => {
+              // Coffee-themed success feedback
+              const originalBackground = this.style.background;
+              this.style.background =
+                "linear-gradient(135deg, #8b5a3c, #d4a574)";
+              this.style.border = "2px solid #d4a574";
+
+              // Create a temporary toast notification
+              const toast = document.createElement("div");
+              toast.textContent = "☕ Copied to clipboard!";
+              toast.style.cssText = `
                             position: fixed;
                             top: 20px;
                             right: 20px;
@@ -763,23 +1036,23 @@
                             z-index: 1000;
                             animation: slideIn 0.3s ease;
                         `;
-                        document.body.appendChild(toast);
-                        
-                        setTimeout(() => {
-                            this.style.background = originalBackground;
-                            this.style.border = '1px solid #6f4e37';
-                            toast.remove();
-                        }, 2000);
-                    });
-                });
-            });
+              document.body.appendChild(toast);
 
-            // Coffee bean floating animation
-            function createFloatingBeans() {
-                for (let i = 0; i < 3; i++) {
-                    const bean = document.createElement('div');
-                    bean.className = 'coffee-bean';
-                    bean.style.cssText = `
+              setTimeout(() => {
+                this.style.background = originalBackground;
+                this.style.border = "1px solid #6f4e37";
+                toast.remove();
+              }, 2000);
+            });
+          });
+        });
+
+        // Coffee bean floating animation
+        function createFloatingBeans() {
+          for (let i = 0; i < 3; i++) {
+            const bean = document.createElement("div");
+            bean.className = "coffee-bean";
+            bean.style.cssText = `
                         position: fixed;
                         width: 8px;
                         height: 8px;
@@ -789,54 +1062,56 @@
                         pointer-events: none;
                         z-index: -1;
                     `;
-                    document.body.appendChild(bean);
-                    
-                    // Random positioning
-                    bean.style.left = Math.random() * window.innerWidth + 'px';
-                    bean.style.top = Math.random() * window.innerHeight + 'px';
-                    
-                    // Floating animation
-                    setInterval(() => {
-                        bean.style.transform = `translateY(${Math.sin(Date.now() * 0.002 + i) * 20}px) rotate(${Date.now() * 0.1 + i * 60}deg)`;
-                    }, 50);
-                }
+            document.body.appendChild(bean);
+
+            // Random positioning
+            bean.style.left = Math.random() * window.innerWidth + "px";
+            bean.style.top = Math.random() * window.innerHeight + "px";
+
+            // Floating animation
+            setInterval(() => {
+              bean.style.transform = `translateY(${
+                Math.sin(Date.now() * 0.002 + i) * 20
+              }px) rotate(${Date.now() * 0.1 + i * 60}deg)`;
+            }, 50);
+          }
+        }
+
+        // Add smooth scrolling with coffee theme
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute("href"));
+            if (target) {
+              target.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
             }
-
-            // Add smooth scrolling with coffee theme
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
-
-            // Initialize coffee-themed features
-            addCoffeeSteam();
-            createFloatingBeans();
-
-            // Add coffee-themed loading states for buttons
-            const badges = document.querySelectorAll('.badge');
-            badges.forEach(badge => {
-                badge.addEventListener('mouseenter', function() {
-                    this.style.transform = 'scale(1.05)';
-                    this.style.boxShadow = '0 6px 20px rgba(111, 78, 55, 0.4)';
-                });
-                badge.addEventListener('mouseleave', function() {
-                    this.style.transform = 'scale(1)';
-                    this.style.boxShadow = '0 4px 12px rgba(111, 78, 55, 0.3)';
-                });
-            });
+          });
         });
 
-        // Add CSS animation for toast
-        const style = document.createElement('style');
-        style.textContent = `
+        // Initialize coffee-themed features
+        addCoffeeSteam();
+        createFloatingBeans();
+
+        // Add coffee-themed loading states for buttons
+        const badges = document.querySelectorAll(".badge");
+        badges.forEach((badge) => {
+          badge.addEventListener("mouseenter", function () {
+            this.style.transform = "scale(1.05)";
+            this.style.boxShadow = "0 6px 20px rgba(111, 78, 55, 0.4)";
+          });
+          badge.addEventListener("mouseleave", function () {
+            this.style.transform = "scale(1)";
+            this.style.boxShadow = "0 4px 12px rgba(111, 78, 55, 0.3)";
+          });
+        });
+      });
+
+      // Add CSS animation for toast
+      const style = document.createElement("style");
+      style.textContent = `
             @keyframes slideIn {
                 from {
                     transform: translateX(100%);
@@ -848,7 +1123,7 @@
                 }
             }
         `;
-        document.head.appendChild(style);
+      document.head.appendChild(style);
     </script>
-</body>
-</html> 
+  </body>
+</html>
